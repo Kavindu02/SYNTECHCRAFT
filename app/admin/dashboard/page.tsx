@@ -73,12 +73,18 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       })
+      
+      const data = await res.json()
+      
       if (res.ok) {
         resetForm()
         fetchProjects()
+      } else {
+        alert(data.error || 'Failed to save project')
       }
     } catch (err) {
       console.error(err)
+      alert('An error occurred while saving the project')
     }
   }
 
@@ -107,9 +113,17 @@ export default function AdminDashboard() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ title }),
       })
-      if (res.ok) fetchProjects()
+      
+      const data = await res.json()
+      
+      if (res.ok) {
+        fetchProjects()
+      } else {
+        alert(data.error || 'Failed to delete project')
+      }
     } catch (err) {
       console.error(err)
+      alert('An error occurred while deleting the project')
     }
   }
 
