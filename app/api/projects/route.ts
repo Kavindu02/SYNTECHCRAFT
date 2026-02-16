@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import projectsData from '@/data/projects.json';
 import fs from 'fs/promises';
 import path from 'path';
 
@@ -6,15 +7,30 @@ const dataPath = path.join(process.cwd(), 'data', 'projects.json');
 
 export async function GET() {
   try {
+    // In production (Vercel), we use the statically imported data
+    // This avoids issues with the file system on serverless environments
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json(projectsData);
+    }
+    
+    // In development, we can still read from the file to get latest changes
     const data = await fs.readFile(dataPath, 'utf8');
     return NextResponse.json(JSON.parse(data));
   } catch (error) {
-    return NextResponse.json([], { status: 200 });
+    // Fallback to imported data if file read fails
+    return NextResponse.json(projectsData);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Writing to files is not supported in production (Vercel). Please use a database for persistent storage.' 
+      }, { status: 403 });
+    }
+
     const project = await request.json();
     const data = await fs.readFile(dataPath, 'utf8');
     const projects = JSON.parse(data);
@@ -30,6 +46,13 @@ export async function POST(request: Request) {
 
 export async function PUT(request: Request) {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Updating files is not supported in production (Vercel). Please use a database for persistent storage.' 
+      }, { status: 403 });
+    }
+
     const updatedProject = await request.json();
     const data = await fs.readFile(dataPath, 'utf8');
     let projects = JSON.parse(data);
@@ -46,6 +69,13 @@ export async function PUT(request: Request) {
 
 export async function DELETE(request: Request) {
   try {
+    if (process.env.NODE_ENV === 'production') {
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Deleting files is not supported in production (Vercel). Please use a database for persistent storage.' 
+      }, { status: 403 });
+    }
+
     const { title } = await request.json();
     const data = await fs.readFile(dataPath, 'utf8');
     const projects = JSON.parse(data);
