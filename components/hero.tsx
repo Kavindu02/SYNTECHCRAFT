@@ -87,8 +87,8 @@ const Hero = () => {
           >
             <div className="relative z-10 aspect-[4/5] rounded-[60px] overflow-hidden border-[16px] border-white shadow-3xl bg-slate-100">
                <img 
-                src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070" 
-                className="w-full h-full object-cover grayscale active:grayscale-0 transition-all duration-1000" 
+                src="hero.jpg" 
+                className="w-full h-full object-cover transition-all duration-1000" 
                 alt="Code Representation" 
                />
                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>

@@ -272,7 +272,7 @@ export default function AdminDashboard() {
                 key={idx}
                 className="bg-white border border-slate-100 rounded-[32px] overflow-hidden group hover:shadow-2xl transition-all duration-500"
               >
-                <div className="h-48 relative overflow-hidden">
+                <div className="h-64 relative overflow-hidden">
                   <img src={proj.img} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   <div className="absolute inset-0 bg-black/20"></div>
                   <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/50">
@@ -295,7 +295,7 @@ export default function AdminDashboard() {
                 </div>
                 <div className="p-8">
                   <h3 className="text-lg font-black text-slate-900 tracking-tighter italic uppercase mb-3 line-clamp-1">{proj.title}</h3>
-                  <p className="text-slate-500 text-[11px] font-medium leading-relaxed mb-6 line-clamp-2">{proj.desc}</p>
+                  <p className="text-slate-500 text-[11px] font-medium leading-relaxed mb-6">{proj.desc}</p>
                   <div className="flex flex-wrap gap-2">
                     {proj.tags.map((tag, tIdx) => (
                       <span key={tIdx} className="px-3 py-1.5 bg-slate-50 border border-slate-100 rounded-lg text-[8px] font-bold text-slate-400 uppercase tracking-widest">{tag}</span>

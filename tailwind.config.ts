@@ -88,12 +88,17 @@ const config: Config = {
             height: '0',
           },
         },
+        shine: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
+        },
       },
       animation: {
         marquee: 'marquee 40s linear infinite',
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
         'spin-slow': 'spin 8s linear infinite',
+        shine: 'shine 1s ease-in-out infinite',
       },
       fontFamily: {
         sans: ['var(--font-geist-sans)'],

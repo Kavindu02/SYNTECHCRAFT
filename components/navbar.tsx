@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ArrowRight } from 'lucide-react'
 
@@ -33,10 +34,14 @@ const Navbar = () => {
       <div className="max-w-7xl mx-auto px-8 flex items-center justify-between">
         {/* Logo */}
         <Link href="#home" className="flex items-center gap-3 group">
-          <div className="bg-[#ffb400] p-2 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-[#ffb400]/20">
-            <div className="w-6 h-6 border-2 border-black flex items-center justify-center font-black text-black text-[10px]">
-              SDK
-            </div>
+          <div className="relative w-12 h-12 group-hover:scale-110 transition-transform">
+            <Image 
+              src="/sdklogo.png" 
+              alt="SDK Solutions Logo" 
+              fill 
+              className="object-contain"
+              priority
+            />
           </div>
           <span className="text-2xl font-black text-slate-900 tracking-tighter italic uppercase">
             SDK <span className="text-[#ffb400] not-italic">Solutions</span>
