@@ -59,7 +59,7 @@ export function ContactForm() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative overflow-hidden backdrop-blur-xl bg-white/60 border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[3rem] p-8 md:p-14"
+        className="relative overflow-hidden backdrop-blur-xl bg-white/60 border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] md:rounded-[3rem] p-6 sm:p-8 md:p-14"
       >
         <AnimatePresence mode="wait">
           {!isSubmitted ? (
@@ -69,18 +69,18 @@ export function ContactForm() {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="mb-12">
-                <h2 className="text-4xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
+              <div className="mb-8 md:mb-12">
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
                   Let&apos;s talk.
                 </h2>
-                <p className="text-slate-500 text-lg">
+                <p className="text-slate-500 text-base md:text-lg">
                   Have a project in mind? We&apos;d love to hear from you.
                 </p>
               </div>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-                  <div className="grid md:grid-cols-2 gap-8">
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 md:space-y-8">
+                  <div className="grid sm:grid-cols-2 gap-6 md:gap-8">
                     <FormField
                       control={form.control}
                       name="name"
