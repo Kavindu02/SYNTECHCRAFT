@@ -39,6 +39,7 @@ const Navbar = () => {
               src="/sdklogo.png" 
               alt="SDK Solutions Logo" 
               fill 
+              sizes="(max-width: 768px) 40px, 48px"
               className="object-contain"
               priority
             />
@@ -102,7 +103,20 @@ const Navbar = () => {
             className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-white z-[120] shadow-2xl lg:hidden p-12 flex flex-col"
           >
             <div className="flex justify-between items-center mb-16">
-              <span className="text-xl font-black text-slate-900 italic uppercase">SDK</span>
+              <Link href="#home" onClick={() => setIsOpen(false)} className="flex items-center gap-2 group">
+                <div className="relative w-10 h-10">
+                  <Image 
+                    src="/sdklogo.png" 
+                    alt="SDK Solutions Logo" 
+                    fill 
+                    sizes="40px"
+                    className="object-contain"
+                  />
+                </div>
+                <span className="text-xl font-black text-slate-900 tracking-tighter italic uppercase">
+                  SDK <span className="text-[#ffb400] not-italic">Solutions</span>
+                </span>
+              </Link>
               <button 
                 className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center hover:bg-[#ffb400] transition-colors"
                 onClick={() => setIsOpen(false)}

@@ -391,7 +391,7 @@ export default function Home() {
             <h2 className="text-5xl md:text-6xl lg:text-8xl font-black text-slate-900 leading-[0.9] md:leading-[0.85] tracking-tighter uppercase italic text-center">DIGITAL <br/><span className="text-[#ffb400] not-italic">PROJECTS.</span></h2>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {projectsList.map((proj, index) => (
               <motion.div 
                 key={index}
@@ -420,7 +420,7 @@ export default function Home() {
                     <div className="w-10 md:w-12 h-1 bg-[#ffb400] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                   </div>
                   
-                  <p className="text-slate-500 text-xs md:text-sm leading-relaxed font-medium line-clamp-2">
+                  <p className="text-slate-500 text-xs md:text-sm leading-relaxed font-medium">
                     {proj.desc}
                   </p>
                   
@@ -495,9 +495,9 @@ export default function Home() {
 
             <div className="flex flex-col gap-8 md:gap-12">
               {[
-                { icon: MapPin, title: 'Studio', val: 'Colombo, Sri Lanka', color: 'bg-slate-500/10' },
+                { icon: MapPin, title: 'Company', val: 'Colombo, Sri Lanka', color: 'bg-slate-500/10' },
                 { icon: Phone, title: 'Call Us', val: '+94 11 234 5678', color: 'bg-slate-500/10' },
-                { icon: Mail, title: 'Email', val: 'sdksolutions01@.com', color: 'bg-slate-500/10' }
+                { icon: Mail, title: 'Email', val: 'sdksolutions01@gmail.com', color: 'bg-slate-500/10' }
               ].map((item, idx) => (
                 <motion.div 
                   key={idx} 
@@ -538,6 +538,7 @@ export default function Home() {
                   src="/sdklogo.png" 
                   alt="SDK Solutions Logo" 
                   fill 
+                  sizes="(max-width: 768px) 40px, 48px"
                   className="object-contain"
                 />
               </div>
@@ -620,7 +621,7 @@ export default function Home() {
               {[
                 { icon: MapPin, label: 'HQ Office', val: 'Colombo, Sri Lanka' },
                 { icon: Phone, label: 'Direct Line', val: '+94 74 2216 579' },
-                { icon: Mail, label: 'Email Address', val: 'sdksolutions01@.com' }
+                { icon: Mail, label: 'Email Address', val: 'sdksolutions01@gmail.com' }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center gap-5 md:gap-6 group">
                   <div className="w-12 h-12 md:w-14 md:h-14 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#ffb400] group-hover:border-[#ffb400] transition-all duration-500">

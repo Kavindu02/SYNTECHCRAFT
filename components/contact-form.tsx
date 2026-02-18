@@ -156,7 +156,7 @@ export function ContactForm() {
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full h-16 bg-slate-900 hover:bg-black text-white rounded-2xl text-md font-bold transition-all group overflow-hidden shadow-lg"
+                    className="w-full h-16 bg-black text-white hover:bg-[#ffb400] hover:text-black rounded-2xl text-md font-bold uppercase tracking-[0.2em] transition-all group overflow-hidden shadow-lg"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-6 h-6 animate-spin" />
