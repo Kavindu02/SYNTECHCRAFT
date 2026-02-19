@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'SDK Solutions | Software Development House',
-  description: 'Next-gen software development, web apps, and mobile solutions by SDK Solutions.',
+  title: 'SDK Solutions | Innovating Your Future',
+  description: 'Modern web, mobile and custom software solutions for growing businesses.',
 }
 
 export default function RootLayout({
