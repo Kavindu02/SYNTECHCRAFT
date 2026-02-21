@@ -37,6 +37,21 @@
     "img": "/images/projects/project-3.jpeg",
     "link": "https://anchorwayservices.com/"
   },
+
+   {
+    "title": "Mazeline Events",
+    "cat": "Admin Dashboard",
+    "desc": "A complete web-based rental management system with frontend and backend integration, powered by a MySQL database. The Admin Dashboard provides a real-time overview of equipment, active rentals, customers, and revenue, helping manage inventory, orders, expenses, and users efficiently through a modern and responsive interface.",
+    "tags": [
+      "Reactjs",
+      "TailwindCSS",
+      "Expressjs",
+      "Nodejs",
+      "My SQL"
+    ],
+    "img": "/images/projects/mazelineevents.jpeg",
+    "link": "https://mazelineevents.com/"
+  },
   {
     "title": "PFP Frontend Developmnent",
     "cat": "Marketing",
