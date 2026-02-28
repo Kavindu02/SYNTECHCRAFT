@@ -238,7 +238,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
             {[
-              { val: 15, suffix: '+', label: 'Projects Delivered', y: y1 },
+              { val: 20, suffix: '+', label: 'Projects Delivered', y: y1 },
               { val: 15, suffix: '+', label: 'Happy Clients', y: y2 },
               { val: 10, suffix: '+', label: 'Tech Experts', y: y3 }
             ].map((stat, i) => (

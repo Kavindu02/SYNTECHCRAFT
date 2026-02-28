@@ -87,9 +87,10 @@ const Hero = () => {
           >
             <div className="relative z-10 aspect-[4/5] rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[16px] border-white shadow-3xl bg-slate-100">
                <img 
-                src="hero.jpg" 
+                src="https://res.cloudinary.com/dz0hl3qmz/image/upload/f_webp,q_auto,w_600/hero_3_kkjoiv.jpg" 
                 className="w-full h-full object-cover transition-all duration-1000" 
                 alt="Code Representation" 
+                loading="lazy"
                />
                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
             </div>
