@@ -155,7 +155,7 @@ export default function Home() {
             viewport={{ once: true }}
             className="w-full aspect-[4/5] bg-slate-200 rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[15px] border-white shadow-3xl relative z-10 group"
           >
-            <img src="https://images.unsplash.com/photo-1522071820081-009f0129c71c?q=80&w=2070" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000" alt="SDK Team" />
+            <img src="about.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000" alt="SDK Team" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
             <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[40px] md:rounded-[60px]"></div>
           </motion.div>
