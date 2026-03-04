@@ -101,14 +101,19 @@ export default function Home() {
       </div>
 
       {/* Trusted By / Logo Cloud - TRULY MODERN ADDITION */}
-      <section className="py-20 md:py-32 border-b border-slate-100 bg-[#FAF9F6] overflow-hidden relative">
+      <section className="py-20 md:py-32 border-b border-slate-100 bg-[#FAF9F6] overflow-hidden relative flex flex-col justify-center">
+        {/* Background Watermark Text */}
+        <div className="absolute top-[65%] left-[48%] -translate-x-1/2 -translate-y-1/2 font-black text-[11vw] leading-none tracking-normal text-slate-900/[0.03] whitespace-nowrap pointer-events-none select-none italic z-0 overflow-hidden w-full text-center scale-y-125">
+          SYNTECHCRAFT
+        </div>
+
         {/* Decorative background element */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(#ffb400_0.5px,transparent_1px)] [background-size:32px_32px] opacity-[0.15]"></div>
 
         <div className="absolute inset-0 bg-gradient-to-r from-[#FAF9F6] via-transparent to-[#FAF9F6] z-10 pointer-events-none hidden md:block opacity-40"></div>
 
-        <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-0">
-          <div className="flex flex-col items-center mb-10 md:mb-16">
+        <div className="max-w-[100vw] w-full mx-auto relative z-0">
+          <div className="flex flex-col items-center mb-10 md:mb-16 px-6 md:px-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
@@ -122,8 +127,8 @@ export default function Home() {
             <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter italic text-center">TECHNOLOGIES WE MASTER</h2>
           </div>
 
-          <div className="relative flex overflow-hidden">
-            <div className="flex animate-marquee whitespace-nowrap gap-6 md:gap-12 py-4 md:py-8">
+          <div className="relative flex overflow-hidden w-screen left-1/2 -translate-x-1/2">
+            <div className="flex animate-marquee whitespace-nowrap gap-6 md:gap-12 py-4 md:py-8 pl-6 md:pl-12">
               {[...languages, ...languages].map((lang, idx) => (
                 <motion.div
                   key={idx}
@@ -554,7 +559,7 @@ export default function Home() {
                       <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z" />
                     </svg>
                   ),
-                  href: 'https://www.tiktok.com/@sdk.solutions?_r=1&_t=ZS-9406SF07AjR',
+                  href: 'https://www.tiktok.com/@syntechcraft?_r=1&_t=ZS-94OiWFI4GB7',
                   label: 'TikTok'
                 },
                 {
