@@ -16,12 +16,12 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: 'SDK Solutions | Innovating Your Future | Best Software Agency in Sri Lanka',
-    template: '%s | SDK Solutions'
+    default: 'SYNTECHCRAFT | Innovating Your Future | Best Software Agency in Sri Lanka',
+    template: '%s | SYNTECHCRAFT'
   },
-  description: 'SDK Solutions is a premier software development agency in Sri Lanka specializing in modern web development, mobile apps, UI/UX design, and cloud solutions. We turn complex challenges into seamless digital experiences.',
+  description: 'SYNTECHCRAFT is a premier software development agency in Sri Lanka specializing in modern web development, mobile apps, UI/UX design, and cloud solutions. We turn complex challenges into seamless digital experiences.',
   keywords: [
-    'SDK Solutions',
+    'SYNTECHCRAFT',
     'Software Development Sri Lanka',
     'Web Development Colombo',
     'Mobile App Development',
@@ -32,29 +32,29 @@ export const metadata: Metadata = {
     'Next.js Agency',
     'Tech Solutions Sri Lanka'
   ],
-  authors: [{ name: 'SDK Solutions' }],
-  creator: 'SDK Solutions',
-  publisher: 'SDK Solutions',
+  authors: [{ name: 'SYNTECHCRAFT' }],
+  creator: 'SYNTECHCRAFT',
+  publisher: 'SYNTECHCRAFT',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL('https://sdk-solutions.com'),
+  metadataBase: new URL('https://syntechcraft.com'),
   alternates: {
     canonical: '/',
   },
   openGraph: {
-    title: 'SDK Solutions | Innovating Your Future',
+    title: 'SYNTECHCRAFT | Innovating Your Future',
     description: 'Premier software development agency specializing in modern web, mobile, and custom solutions.',
-    url: 'https://sdk-solutions.com',
-    siteName: 'SDK Solutions',
+    url: 'https://syntechcraft.com',
+    siteName: 'SYNTECHCRAFT',
     images: [
       {
-        url: '/sdklogo.png',
+        url: '/logo.png',
         width: 800,
         height: 600,
-        alt: 'SDK Solutions Logo',
+        alt: 'SYNTECHCRAFT Logo',
       },
     ],
     locale: 'en_US',
@@ -62,9 +62,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SDK Solutions | Innovating Your Future',
+    title: 'SYNTECHCRAFT | Innovating Your Future',
     description: 'Modern web, mobile and custom software solutions for growing businesses.',
-    images: ['/sdklogo.png'],
+    images: ['/logo.png'],
   },
   robots: {
     index: true,
@@ -81,7 +81,7 @@ export const metadata: Metadata = {
   icons: {
     icon: '/favicon.ico',
     shortcut: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
+    apple: '/logo.png',
   },
 }
 
@@ -99,9 +99,9 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Organization",
-              "name": "SDK Solutions",
-              "url": "https://sdk-solutions.com",
-              "logo": "https://sdk-solutions.com/sdklogo.png",
+              "name": "SYNTECHCRAFT",
+              "url": "https://syntechcraft.com",
+              "logo": "https://syntechcraft.com/logo.png",
               "contactPoint": {
                 "@type": "ContactPoint",
                 "telephone": "+94-74-2216-579",
@@ -111,7 +111,7 @@ export default function RootLayout({
               },
               "sameAs": [
                 "https://www.facebook.com/share/17hZxJtcym/?mibextid=wwXIfr",
-                "https://www.linkedin.com/company/sdk-solutions01/posts/?feedView=all"
+                "https://www.linkedin.com/company/syntechcraft/posts/?feedView=all"
               ]
             })
           }}

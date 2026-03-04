@@ -49,7 +49,7 @@ const Hero = () => {
               transition={{ delay: 0.4 }}
               className="text-lg md:text-xl text-slate-500 max-w-xl leading-relaxed font-medium"
             >
-              SDK Solutions combines intuitive UI/UX design with high-performance web and enterprise engineering to build scalable digital products that transform businesses.
+              SYNTECHCRAFT combines intuitive UI/UX design with high-performance web and enterprise engineering to build scalable digital products that transform businesses.
             </motion.p>
 
             <motion.div 
@@ -105,7 +105,7 @@ const Hero = () => {
                  <span className="font-black text-lg md:text-xl italic">2+</span>
               </div>
               <div>
-                 <h4 className="text-slate-900 font-black text-base md:text-lg tracking-tighter">SDK SOLUTIONS</h4>
+                 <h4 className="text-slate-900 font-black text-base md:text-lg tracking-tighter">SYNTECHCRAFT</h4>
                  <p className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em] text-[#ffb400]">Dev Excellence</p>
               </div>
             </motion.div>

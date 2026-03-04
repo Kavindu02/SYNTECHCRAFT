@@ -36,8 +36,8 @@ const Navbar = () => {
         <Link href="#home" className="flex items-center gap-2 md:gap-3 group">
           <div className="relative w-10 h-10 md:w-12 md:h-12 group-hover:scale-110 transition-transform">
             <Image 
-              src="/sdklogo.png" 
-              alt="SDK Solutions Logo" 
+              src="/logo.png" 
+              alt="SYNTECHCRAFT Logo" 
               fill 
               sizes="(max-width: 768px) 40px, 48px"
               className="object-contain"
@@ -45,7 +45,7 @@ const Navbar = () => {
             />
           </div>
           <span className="text-xl md:text-2xl font-black text-slate-900 tracking-tighter italic uppercase">
-            SDK <span className="text-[#ffb400] not-italic">Solutions</span>
+            SYN <span className="text-[#ffb400] not-italic">TECHCRAFT</span>
           </span>
         </Link>
 

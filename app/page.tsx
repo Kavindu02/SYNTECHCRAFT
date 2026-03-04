@@ -177,7 +177,7 @@ export default function Home() {
           <div className="flex flex-col gap-4 md:gap-6">
             <div className="flex items-center gap-4">
               <div className="w-12 md:w-16 h-[2px] bg-[#ffb400]"></div>
-              <span className="text-[#ffb400] font-black uppercase tracking-[0.5em] text-[9px] md:text-[10px]">The SDK Standard</span>
+              <span className="text-[#ffb400] font-black uppercase tracking-[0.5em] text-[9px] md:text-[10px]">The SYNTECHCRAFT Standard</span>
             </div>
             <h2 className="text-5xl md:text-6xl lg:text-8xl font-black leading-[0.9] md:leading-[0.8] text-slate-900 tracking-tighter uppercase italic">
               WE TRANSFORM <br /><span className="text-[#ffb400] not-italic">REALITY.</span>
@@ -185,7 +185,7 @@ export default function Home() {
           </div>
 
           <p className="text-slate-500 leading-relaxed text-lg md:text-xl font-medium max-w-xl">
-            SDK Solutions isn&apos;t just a dev house. We are architects of the digital future, blending logic with aesthetics to build software that defines industries.
+            SYNTECHCRAFT isn&apos;t just a dev house. We are architects of the digital future, blending logic with aesthetics to build software that defines industries.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 md:gap-8 pt-2 md:pt-4">
@@ -487,7 +487,7 @@ export default function Home() {
               {[
                 { icon: MapPin, title: 'Company', val: 'Colombo, Sri Lanka', color: 'bg-slate-500/10' },
                 { icon: Phone, title: 'Call Us', val: '+94 74 2216 579', color: 'bg-slate-500/10' },
-                { icon: Mail, title: 'Email', val: 'sdksolutions01@gmail.com', color: 'bg-slate-500/10' }
+                { icon: Mail, title: 'Email', val: 'syntechcraft@gmail.com', color: 'bg-slate-500/10' }
               ].map((item, idx) => (
                 <motion.div
                   key={idx}
@@ -525,14 +525,14 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="relative w-10 h-10 md:w-12 md:h-12">
                 <Image
-                  src="/sdklogo.png"
-                  alt="SDK Solutions Logo"
+                  src="/logo.png"
+                  alt="SYNTECHCRAFT Logo"
                   fill
                   sizes="(max-width: 768px) 40px, 48px"
                   className="object-contain"
                 />
               </div>
-              <span className="text-2xl md:text-3xl font-black text-white tracking-tighter italic uppercase">SDK <span className="text-[#ffb400] not-italic">Solutions</span></span>
+              <span className="text-2xl md:text-2xl font-black text-white tracking-tighter italic uppercase">SYN <span className="text-[#ffb400] not-italic">TECHCRAFT</span></span>
             </div>
             <p className="text-slate-400 leading-relaxed text-sm md:text-base font-medium">
               Empowering global enterprises through strategic consulting and innovative digital solutions. We turn complex challenges into seamless experiences.
@@ -620,7 +620,7 @@ export default function Home() {
               {[
                 { icon: MapPin, label: 'HQ Office', val: 'Colombo, Sri Lanka' },
                 { icon: Phone, label: 'Direct Line', val: '+94 74 2216 579' },
-                { icon: Mail, label: 'Email Address', val: 'sdksolutions01@gmail.com' }
+                { icon: Mail, label: 'Email Address', val: 'syntechcraft@gmail.com' }
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center gap-5 md:gap-6 group">
                   <div className="w-12 h-12 md:w-14 md:h-14 bg-white/5 border border-white/10 rounded-xl md:rounded-2xl flex items-center justify-center shrink-0 group-hover:bg-[#ffb400] group-hover:border-[#ffb400] transition-all duration-500">
@@ -638,7 +638,7 @@ export default function Home() {
 
         <div className="max-w-7xl mx-auto pt-12 md:pt-16 border-t border-white/10 flex flex-col md:flex-row justify-between items-center gap-6 md:gap-8 relative z-10">
           <p className="text-slate-500 font-bold text-[10px] md:text-xs uppercase tracking-widest text-center md:text-left">
-            © 2026 SDK SOLUTIONS PVT LTD. <span className="hidden md:inline">|</span> CRAFTING DIGITAL EXCELLENCE.
+            © 2026 SYNTECHCRAFT PVT LTD. <span className="hidden md:inline">|</span> CRAFTING DIGITAL EXCELLENCE.
           </p>
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
