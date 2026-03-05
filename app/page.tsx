@@ -81,7 +81,8 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 }
 
 export default function Home() {
-  const [projectsList] = useState(projectsData)
+  // Only show the first 9 projects on the home page
+  const [projectsList] = useState(projectsData.slice(0, 9))
 
   const containerRef = useRef(null)
   const { scrollYProgress } = useScroll({
@@ -282,7 +283,7 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-24 md:py-40 px-6 md:px-8 relative overflow-hidden bg-[#fafafa]">
+      <section id="services" className="py-24 md:py-40 px-6 md:px-8 relative overflow-hidden bg-[#FAF9F6]">
         {/* Modern Background Elements - Noise & Grid */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:40px_40px] opacity-40"></div>
@@ -379,13 +380,29 @@ export default function Home() {
         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(#ffb400_0.7px,transparent_0.7px)] [background-size:32px_32px] opacity-[0.08]"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex flex-col items-center text-center mb-16 md:mb-32 gap-4 md:gap-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
-              <span className="text-[#ffb400] font-black uppercase tracking-[0.4em] text-[9px] md:text-[10px]">Recent Deployments</span>
-              <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
+          <div className="flex flex-col md:flex-row items-center justify-between mb-16 md:mb-32 gap-4 md:gap-6">
+            <div className="flex flex-col items-start text-left flex-1">
+              <div className="flex items-center gap-4 justify-start w-full">
+                <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
+                <span className="text-[#ffb400] font-black uppercase tracking-[0.4em] text-[9px] md:text-[10px]">Recent Deployments</span>
+                <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
+              </div>
+              <div className="flex flex-col items-start mt-4 w-full">
+                <span className="text-5xl md:text-6xl lg:text-8xl font-black italic text-slate-900 leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left">DIGITAL</span>
+                <span className="text-5xl md:text-6xl lg:text-8xl font-black text-[#ffb400] leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left mt-2">PROJECTS.</span>
+              </div>
             </div>
-            <h2 className="text-5xl md:text-6xl lg:text-8xl font-black text-slate-900 leading-[0.9] md:leading-[0.85] tracking-tighter uppercase italic text-center">DIGITAL <br /><span className="text-[#ffb400] not-italic">PROJECTS.</span></h2>
+            <div className="w-full flex justify-end items-end pb-70">
+              <a
+                href="/projects"
+                className="min-w-[180px] flex items-center justify-between bg-black text-white px-8 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[12px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 hidden md:flex"
+              >
+                <span className="flex items-center gap-4">View All Projects</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 group-hover/btn:-translate-y-1 transition-transform duration-300">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
@@ -449,6 +466,18 @@ export default function Home() {
                 </div>
               </motion.div>
             ))}
+            {/* Mobile only: View All Projects button below grid */}
+            <div className="w-full flex justify-center mt-8 md:hidden">
+              <a
+                href="/projects"
+                className="min-w-[140px] flex items-center justify-between bg-black text-white px-5 py-3 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20"
+              >
+                <span className="flex items-center gap-3">View All Projects</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 group-hover/btn:-translate-y-1 transition-transform duration-300">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </a>
+            </div>
           </div>
         </div>
       </section>
