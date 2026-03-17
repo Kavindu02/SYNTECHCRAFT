@@ -87,7 +87,7 @@ const Hero = () => {
           >
             <div className="relative z-10 aspect-[4/5] rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[16px] border-white shadow-3xl bg-slate-100">
                <img 
-                src="https://res.cloudinary.com/dz0hl3qmz/image/upload/f_webp,q_auto,w_600/hero_3_kkjoiv.jpg" 
+                src="https://res.cloudinary.com/dz0hl3qmz/image/upload/v1773734891/man-is-working-computer-with-computer-screen-that-says-time_1_ttudsy.jpg" 
                 className="w-full h-full object-cover transition-all duration-1000" 
                 alt="Code Representation" 
                 loading="lazy"

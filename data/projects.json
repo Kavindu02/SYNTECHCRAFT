@@ -107,7 +107,7 @@
 
 
   {
-    "title": "Tailor Shop Website (Under Development)",
+    "title": "Tailor Shop Website",
     "cat": "Business",
     "desc": "Tailor Shop Website is a modern, responsive platform built with React.js and Tailwind CSS for tailoring businesses. It features online appointment booking and a digital measurement system, offering a clean UI and smooth user experience for efficient shop management.\n",
     "tags": [
@@ -118,7 +118,7 @@
       "MongoDB"
     ],
     "img": "/images/projects/project-6.png",
-    "link": "https://tailor-shop-website-front-end.vercel.app/"
+    "link": "https://beautysalon.sdksolutions.online/"
   },
 
 
