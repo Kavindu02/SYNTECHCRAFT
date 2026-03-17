@@ -1,19 +1,164 @@
 'use client'
 
-import React from 'react'
+import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Twitter, Instagram, Linkedin, ArrowRight, Play, Settings } from 'lucide-react'
 
 const Hero = () => {
+  const [hoveredHeadlinePart, setHoveredHeadlinePart] = useState<'we-code' | 'excellence' | null>(null)
+
+  const innerBubbles = [
+    {
+      size: 'w-4 h-4 md:w-6 md:h-6',
+      color: 'bg-[#ffb400]/90',
+      glow: 'shadow-[0_0_24px_rgba(255,180,0,0.45)]',
+      leftPath: ['12%', '76%', '55%', '18%', '12%'],
+      topPath: ['18%', '10%', '48%', '72%', '18%'],
+      duration: 10,
+      delay: 0,
+    },
+    {
+      size: 'w-3 h-3 md:w-5 md:h-5',
+      color: 'bg-black/85',
+      glow: 'shadow-[0_0_20px_rgba(0,0,0,0.35)]',
+      leftPath: ['84%', '60%', '28%', '72%', '84%'],
+      topPath: ['26%', '62%', '44%', '14%', '26%'],
+      duration: 9,
+      delay: 0.5,
+    },
+    {
+      size: 'w-5 h-5 md:w-7 md:h-7',
+      color: 'bg-[#ffb400]/80',
+      glow: 'shadow-[0_0_28px_rgba(255,180,0,0.4)]',
+      leftPath: ['20%', '46%', '78%', '38%', '20%'],
+      topPath: ['82%', '52%', '70%', '28%', '82%'],
+      duration: 11,
+      delay: 0.2,
+    },
+    {
+      size: 'w-4 h-4 md:w-6 md:h-6',
+      color: 'bg-black/80',
+      glow: 'shadow-[0_0_24px_rgba(0,0,0,0.3)]',
+      leftPath: ['72%', '34%', '14%', '58%', '72%'],
+      topPath: ['86%', '60%', '24%', '42%', '86%'],
+      duration: 10.5,
+      delay: 0.8,
+    },
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-[#ffb400]/75',
+      glow: 'shadow-[0_0_14px_rgba(255,180,0,0.35)]',
+      leftPath: ['30%', '64%', '50%', '22%', '30%'],
+      topPath: ['34%', '22%', '66%', '58%', '34%'],
+      duration: 8.5,
+      delay: 0.3,
+    },
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-black/75',
+      glow: 'shadow-[0_0_14px_rgba(0,0,0,0.3)]',
+      leftPath: ['68%', '40%', '18%', '52%', '68%'],
+      topPath: ['40%', '74%', '56%', '18%', '40%'],
+      duration: 9.5,
+      delay: 1,
+    },
+    {
+      size: 'w-3 h-3 md:w-4 md:h-4',
+      color: 'bg-[#ffb400]/70',
+      glow: 'shadow-[0_0_16px_rgba(255,180,0,0.3)]',
+      leftPath: ['14%', '36%', '70%', '48%', '14%'],
+      topPath: ['60%', '82%', '54%', '26%', '60%'],
+      duration: 12,
+      delay: 0.6,
+    },
+  ]
+
+  const outerBubbles = [
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-[#ffb400]/80',
+      glow: 'shadow-[0_0_12px_rgba(255,180,0,0.3)]',
+      leftPath: ['8%', '92%', '92%', '8%', '8%'],
+      topPath: ['-2%', '-2%', '102%', '102%', '-2%'],
+      duration: 15,
+      delay: 0,
+    },
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-black/75',
+      glow: 'shadow-[0_0_12px_rgba(0,0,0,0.28)]',
+      leftPath: ['92%', '92%', '8%', '8%', '92%'],
+      topPath: ['10%', '96%', '96%', '10%', '10%'],
+      duration: 16,
+      delay: 0.9,
+    },
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-black/70',
+      glow: 'shadow-[0_0_10px_rgba(0,0,0,0.24)]',
+      leftPath: ['68%', '4%', '20%', '94%', '68%'],
+      topPath: ['96%', '74%', '4%', '24%', '96%'],
+      duration: 15,
+      delay: 1.1,
+    },
+  ]
+
+  const burstBubbles = [
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-[#ffb400]/80',
+      glow: 'shadow-[0_0_12px_rgba(255,180,0,0.35)]',
+      startLeft: '48%',
+      startTop: '58%',
+      xPath: [0, 30, 80, 130],
+      yPath: [0, -20, -70, -120],
+      duration: 4.8,
+      delay: 0.2,
+    },
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-black/75',
+      glow: 'shadow-[0_0_12px_rgba(0,0,0,0.28)]',
+      startLeft: '54%',
+      startTop: '62%',
+      xPath: [0, -24, -72, -120],
+      yPath: [0, -16, -62, -110],
+      duration: 5.2,
+      delay: 1.1,
+    },
+    {
+      size: 'w-2 h-2 md:w-3 md:h-3',
+      color: 'bg-[#ffb400]/75',
+      glow: 'shadow-[0_0_12px_rgba(255,180,0,0.32)]',
+      startLeft: '42%',
+      startTop: '52%',
+      xPath: [0, 22, 66, 104],
+      yPath: [0, 18, 64, 108],
+      duration: 5,
+      delay: 2,
+    },
+  ]
+
   return (
     <section className="relative min-h-screen overflow-hidden flex items-center pt-32 pb-16 lg:pt-20 lg:pb-0">
       {/* Background with Subtle Modern texture & Image */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-white z-10 opacity-70"></div>
-        <img 
+        <motion.img 
           src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070" 
           className="w-full h-full object-cover grayscale opacity-20"
           alt="Software Development"
+          animate={{
+            scale: [1, 1.05, 1.02, 1],
+            x: [0, 16, -10, 0],
+            y: [0, -12, 8, 0],
+            rotate: [0, 0.25, -0.2, 0],
+          }}
+          transition={{
+            duration: 18,
+            repeat: Infinity,
+            ease: 'easeInOut',
+          }}
         />
         {/* Modern Shapes */}
         <div className="absolute top-[-10%] right-[-5%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-[#ffb400]/10 rounded-full blur-[80px] md:blur-[120px]"></div>
@@ -39,8 +184,25 @@ const Hero = () => {
               transition={{ delay: 0.2 }}
               className="text-5xl sm:text-7xl md:text-8xl lg:text-9xl font-black text-slate-900 leading-[0.85] md:leading-[0.8] tracking-tighter uppercase italic"
             >
-              WE CODE <br />
-              <span className="text-[#ffb400] not-italic">EXCELLENCE.</span>
+              <span
+                onMouseEnter={() => setHoveredHeadlinePart('we-code')}
+                onMouseLeave={() => setHoveredHeadlinePart(null)}
+                className={`inline-block cursor-pointer transition-colors duration-300 ${
+                  hoveredHeadlinePart ? 'text-[#ffb400]' : 'text-slate-900'
+                }`}
+              >
+                WE CODE
+              </span>{' '}
+              <br />
+              <span
+                onMouseEnter={() => setHoveredHeadlinePart('excellence')}
+                onMouseLeave={() => setHoveredHeadlinePart(null)}
+                className={`inline-block cursor-pointer not-italic transition-colors duration-300 ${
+                  hoveredHeadlinePart ? 'text-black' : 'text-[#ffb400]'
+                }`}
+              >
+                EXCELLENCE.
+              </span>
             </motion.h1>
 
             <motion.p 
@@ -85,14 +247,87 @@ const Hero = () => {
              transition={{ duration: 1 }}
              className="w-full lg:w-2/5 relative"
           >
+            <div className="absolute inset-0 pointer-events-none z-20">
+              {outerBubbles.map((bubble, index) => (
+                <motion.div
+                  key={`outer-bubble-${index}`}
+                  animate={{
+                    left: bubble.leftPath,
+                    top: bubble.topPath,
+                    scale: [1, 1.06, 0.96, 1],
+                  }}
+                  transition={{
+                    duration: bubble.duration + 2,
+                    delay: bubble.delay,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                  }}
+                  className={`absolute ${bubble.size} ${bubble.color} ${bubble.glow} rounded-full`}
+                  style={{ left: bubble.leftPath[0], top: bubble.topPath[0] }}
+                />
+              ))}
+            </div>
+
+            <div className="absolute inset-0 pointer-events-none z-30">
+              {burstBubbles.map((bubble, index) => (
+                <motion.div
+                  key={`burst-bubble-${index}`}
+                  animate={{
+                    x: bubble.xPath,
+                    y: bubble.yPath,
+                    opacity: [0, 0.95, 0.6, 0],
+                    scale: [0.85, 1.02, 0.95, 0.8],
+                  }}
+                  transition={{
+                    duration: bubble.duration,
+                    delay: bubble.delay,
+                    repeat: Infinity,
+                    ease: 'easeOut',
+                  }}
+                  className={`absolute ${bubble.size} ${bubble.color} ${bubble.glow} rounded-full`}
+                  style={{ left: bubble.startLeft, top: bubble.startTop }}
+                />
+              ))}
+            </div>
+
             <div className="relative z-10 aspect-[4/5] rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[16px] border-white shadow-3xl bg-slate-100">
-               <img 
+               <motion.img 
                 src="https://res.cloudinary.com/dz0hl3qmz/image/upload/v1773734891/man-is-working-computer-with-computer-screen-that-says-time_1_ttudsy.jpg" 
-                className="w-full h-full object-cover transition-all duration-1000" 
+                className="w-full h-full object-cover" 
                 alt="Code Representation" 
                 loading="lazy"
+                animate={{
+                  scale: [1, 1.04, 1],
+                  x: [0, 8, 0],
+                  y: [0, -10, 0],
+                }}
+                transition={{
+                  duration: 14,
+                  repeat: Infinity,
+                  ease: 'easeInOut',
+                }}
                />
                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+               <div className="absolute inset-0 pointer-events-none z-20">
+                 {innerBubbles.map((bubble, index) => (
+                   <motion.div
+                     key={`inner-bubble-${index}`}
+                     animate={{
+                       left: bubble.leftPath,
+                       top: bubble.topPath,
+                       scale: [1, 1.06, 0.96, 1],
+                     }}
+                     transition={{
+                       duration: bubble.duration + 1.5,
+                       delay: bubble.delay,
+                       repeat: Infinity,
+                       ease: 'easeInOut',
+                     }}
+                     className={`absolute ${bubble.size} ${bubble.color} ${bubble.glow} rounded-full`}
+                     style={{ left: bubble.leftPath[0], top: bubble.topPath[0] }}
+                   />
+                 ))}
+               </div>
             </div>
 
             {/* Floating Info Box */}

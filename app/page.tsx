@@ -84,11 +84,7 @@ export default function Home() {
   // Only show the first 9 projects on the home page
   const [projectsList] = useState(projectsData.slice(0, 9))
 
-  const containerRef = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: containerRef,
-    offset: ["start end", "end start"]
-  })
+  const { scrollYProgress } = useScroll()
 
   // Independent floating motions for each stat card
   const y1 = useTransform(scrollYProgress, [0, 1], [60, -60])
@@ -128,7 +124,10 @@ export default function Home() {
               <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] md:tracking-[0.5em] text-[#ffb400]">Tech Stack</p>
               <div className="h-px w-6 md:w-8 bg-[#ffb400]"></div>
             </motion.div>
-            <h2 className="text-2xl md:text-3xl font-black text-slate-900 tracking-tighter italic text-center">TECHNOLOGIES WE MASTER</h2>
+            <h2 className="group text-2xl md:text-3xl font-black tracking-tighter italic text-center">
+              <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">TECHNOLOGIES</span>{' '}
+              <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">WE MASTER</span>
+            </h2>
           </div>
 
           <div className="relative flex overflow-hidden w-screen left-1/2 -translate-x-1/2">
@@ -188,8 +187,9 @@ export default function Home() {
               <div className="w-12 md:w-16 h-[2px] bg-[#ffb400]"></div>
               <span className="text-[#ffb400] font-black uppercase tracking-[0.5em] text-[9px] md:text-[10px]">The SYNTECHCRAFT Standard</span>
             </div>
-            <h2 className="text-5xl md:text-6xl lg:text-8xl font-black leading-[0.9] md:leading-[0.8] text-slate-900 tracking-tighter uppercase italic">
-              WE TRANSFORM <br /><span className="text-[#ffb400] not-italic">REALITY.</span>
+            <h2 className="group text-5xl md:text-6xl lg:text-8xl font-black leading-[0.9] md:leading-[0.8] tracking-tighter uppercase italic">
+              <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">WE TRANSFORM</span>{' '}
+              <br /><span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">REALITY.</span>
             </h2>
           </div>
 
@@ -226,7 +226,7 @@ export default function Home() {
       </section>
 
       {/* TRULY MODERN Stats Section - Clean & Typographic */}
-      <section ref={containerRef} className="relative py-16 md:py-20 overflow-hidden bg-[#0a0a0a]">
+      <section className="relative py-16 md:py-20 overflow-hidden bg-[#0a0a0a]">
         {/* Cinematic Background */}
         <div className="absolute inset-0 z-0">
           <img
@@ -302,9 +302,9 @@ export default function Home() {
                   <div className="w-10 md:w-12 h-[3px] bg-[#ffb400]"></div>
                   <span className="text-[#ffb400] font-black uppercase tracking-[0.5em] text-[9px] md:text-[10px]">Solutions Spectrum</span>
                 </motion.div>
-                <h2 className="text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 tracking-tighter uppercase italic leading-[0.9] md:leading-[0.8]">
-                  ELITE <br />
-                  <span className="text-[#ffb400] not-italic">SERVICES.</span>
+                <h2 className="group text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.9] md:leading-[0.8]">
+                  <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">ELITE</span>{' '}<br />
+                  <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">SERVICES.</span>
                 </h2>
               </div>
 
@@ -387,9 +387,9 @@ export default function Home() {
                 <span className="text-[#ffb400] font-black uppercase tracking-[0.4em] text-[9px] md:text-[10px]">Recent Deployments</span>
                 <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
               </div>
-              <div className="flex flex-col items-start mt-4 w-full">
-                <span className="text-5xl md:text-6xl lg:text-8xl font-black italic text-slate-900 leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left">DIGITAL</span>
-                <span className="text-5xl md:text-6xl lg:text-8xl font-black text-[#ffb400] leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left mt-2">PROJECTS.</span>
+              <div className="group flex flex-col items-start mt-4 w-full">
+                <span className="text-5xl md:text-6xl lg:text-8xl font-black italic text-slate-900 leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left transition-colors duration-300 group-hover:text-[#ffb400]">DIGITAL</span>
+                <span className="text-5xl md:text-6xl lg:text-8xl font-black text-[#ffb400] leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left mt-2 transition-colors duration-300 group-hover:text-black">PROJECTS.</span>
               </div>
             </div>
             <div className="w-full flex justify-end items-end pb-70">
@@ -503,9 +503,9 @@ export default function Home() {
                 <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
                 <span className="text-[#ffb400] font-black uppercase tracking-[0.4em] text-[9px] md:text-[10px]">Contact Us</span>
               </div>
-              <h2 className="text-5xl md:text-7xl font-black leading-tight text-white tracking-tighter uppercase italic">
-                LET&apos;S <br />
-                <span className="text-[#ffb400] not-italic relative">
+              <h2 className="group text-5xl md:text-7xl font-black leading-tight tracking-tighter uppercase italic">
+                <span className="text-white transition-colors duration-300 group-hover:text-[#ffb400]">LET&apos;S</span>{' '}<br />
+                <span className="text-[#ffb400] not-italic relative transition-colors duration-300 group-hover:text-black">
                   TALK.
                   <motion.span
                     initial={{ width: 0 }}

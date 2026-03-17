@@ -20,7 +20,10 @@ export default function ProjectsPage() {
               <span className="text-[#ffb400] font-black uppercase tracking-[0.4em] text-[11px] md:text-[12px]">Projects</span>
               <div className="w-32 md:w-48 h-[3px] bg-[#ffb400]"></div>
             </div>
-            <h1 className="text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black text-slate-900 leading-[1] md:leading-[0.85] tracking-tighter uppercase italic text-center mt-4 sm:mt-6">DIGITAL <br /><span className="text-[#ffb400] not-italic">PROJECTS.</span></h1>
+            <h1 className="group text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[1] md:leading-[0.85] tracking-tighter uppercase italic text-center mt-4 sm:mt-6">
+              <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">DIGITAL</span>{' '}<br />
+              <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">PROJECTS.</span>
+            </h1>
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 md:gap-10">
