@@ -4,6 +4,7 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from "@/components/ui/sonner"
 import { ScrollToTop } from '@/components/scroll-to-top'
+import { InitialLoader } from '@/components/initial-loader'
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -93,6 +94,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-slate-900 bg-white`} suppressHydrationWarning>
+        <InitialLoader />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
