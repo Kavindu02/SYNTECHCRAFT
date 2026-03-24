@@ -16,6 +16,21 @@
     "link": "https://eduran.lk/"
   },
 
+ {
+    "title": "Ceyloria Travels",
+    "cat": "Travel & Tourism",
+    "desc": "Ceyloria Travels is a comprehensive travel booking platform designed to provide users with a seamless experience for planning and reserving their dream vacations. The system includes both frontend and backend integration, ensuring smooth performance and reliability. It features a fully functional admin panel for managing bookings, users, and travel packages efficiently. The platform offers a wide range of destinations, competitive pricing, and personalized travel packages to enhance the overall user experience.",
+    "tags": [
+      "Reactjs",
+      "TailwindCSS",
+      "Expressjs",
+      "Nodejs",
+      "My SQL"
+    ],
+    "img": "/images/projects/ceyloria.jpeg",
+    "link": "https://www.ceyloriatravels.com/"
+  },
+
 
   {
     "title": "IRK Innovations",
