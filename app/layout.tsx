@@ -5,6 +5,7 @@ import './globals.css'
 import { Toaster } from "@/components/ui/sonner"
 import { ScrollToTop } from '@/components/scroll-to-top'
 import { InitialLoader } from '@/components/initial-loader'
+import { RouteTransitionLoader } from '@/components/route-transition-loader'
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -95,6 +96,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="scroll-smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-slate-900 bg-white`} suppressHydrationWarning>
         <InitialLoader />
+        <RouteTransitionLoader />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
