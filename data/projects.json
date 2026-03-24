@@ -16,8 +16,25 @@
     "link": "https://eduran.lk/"
   },
 
- {
-    "title": "Ceyloria Travels",
+
+   {
+    "title": "Dewceylon Travels (Ongoing Project)",
+    "cat": "Travel & Tourism",
+    "desc": "DewCeylon Travels is a travel booking platform with full frontend and backend integration, ensuring smooth and reliable performance. It includes a functional admin panel to manage bookings, users, and travel packages. The platform offers various destinations, competitive pricing, personalized packages, and a convenient taxi service for a complete travel experience.",
+    "tags": [
+      "Reactjs",
+      "TailwindCSS",
+      "Expressjs",
+      "Nodejs",
+      "My SQL"
+    ],
+    "img": "/images/projects/dewceylon.jpeg",
+    "link": "https://www.dewceylon.com/"
+  },
+
+
+  {
+    "title": "Ceyloria Travels (Ongoing Project)",
     "cat": "Travel & Tourism",
     "desc": "Ceyloria Travels is a comprehensive travel booking platform designed to provide users with a seamless experience for planning and reserving their dream vacations. The system includes both frontend and backend integration, ensuring smooth performance and reliability. It features a fully functional admin panel for managing bookings, users, and travel packages efficiently. The platform offers a wide range of destinations, competitive pricing, and personalized travel packages to enhance the overall user experience.",
     "tags": [
@@ -106,22 +123,6 @@
 
 
   {
-    "title": "SDK Travels & Tours",
-    "cat": "Travel & Tourism",
-    "desc": "SDK Travels is a modern travel and tour booking platform developed using the MERN (MongoDB, Express, React, Node.js) stack. It allows users to explore Sri Lanka tour packages, accommodations, and make online bookings through a user-friendly dashboard.",
-    "tags": [
-      "Next.js",
-      "TailwindCSS",
-      "Express.js",
-      "Node.js",
-      "MongoDB"
-    ],
-    "img": "/images/projects/project-5.png",
-    "link": "https://sdk-travels-frontend.vercel.app/"
-  },
-
-
-  {
     "title": "Tailor Shop Website",
     "cat": "Business",
     "desc": "Tailor Shop Website is a modern, responsive platform built with React.js and Tailwind CSS for tailoring businesses. It features online appointment booking and a digital measurement system, offering a clean UI and smooth user experience for efficient shop management.\n",
@@ -134,6 +135,22 @@
     ],
     "img": "/images/projects/project-6.png",
     "link": "https://beautysalon.sdksolutions.online/"
+  },
+
+
+  {
+    "title": "SDK Travels & Tours",
+    "cat": "Travel & Tourism",
+    "desc": "SDK Travels is a modern travel and tour booking platform developed using the MERN (MongoDB, Express, React, Node.js) stack. It allows users to explore Sri Lanka tour packages, accommodations, and make online bookings through a user-friendly dashboard.",
+    "tags": [
+      "Next.js",
+      "TailwindCSS",
+      "Express.js",
+      "Node.js",
+      "MongoDB"
+    ],
+    "img": "/images/projects/project-5.png",
+    "link": "https://sdk-travels-frontend.vercel.app/"
   },
 
 
