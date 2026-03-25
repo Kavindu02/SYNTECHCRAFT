@@ -1,13 +1,62 @@
+"use client";
+
 import React from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
 import Image from "next/image";
-import projectsData from "../../data/projects.json";
 import { ArrowUpRight } from "lucide-react";
 import "../globals.css";
 import Link from "next/link";
 import { Home } from "lucide-react";
 
+interface Project {
+  id?: number;
+  title: string;
+  cat: string;
+  desc: string;
+  tags: string[];
+  img: string;
+  link?: string;
+  showOnHome?: boolean;
+  homeSelectionOrder?: number | null;
+}
+
 export default function ProjectsPage() {
+  const [projects, setProjects] = useState<Project[]>([]);
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/projects');
+        if (!response.ok) return;
+        const data = await response.json();
+        if (!Array.isArray(data)) {
+          setProjects([]);
+          return;
+        }
+
+        const ordered = [...data].sort((a: Project, b: Project) => {
+          const aSelected = Boolean(a.showOnHome);
+          const bSelected = Boolean(b.showOnHome);
+
+          if (aSelected && !bSelected) return -1;
+          if (!aSelected && bSelected) return 1;
+
+          if (aSelected && bSelected) {
+            return (a.homeSelectionOrder ?? Number.MAX_SAFE_INTEGER) - (b.homeSelectionOrder ?? Number.MAX_SAFE_INTEGER);
+          }
+
+          return (b.id ?? 0) - (a.id ?? 0);
+        });
+
+        setProjects(ordered);
+      } catch {
+      }
+    };
+
+    fetchProjects();
+  }, []);
+
   return (
     <main className="min-h-screen bg-[#FAF9F6] text-foreground">
       {/* Navbar removed as requested */}
@@ -27,9 +76,9 @@ export default function ProjectsPage() {
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 md:gap-10">
-          {projectsData.map((proj: any, index: number) => (
+          {projects.map((proj: Project, index: number) => (
             <div
-              key={index}
+              key={proj.id ?? index}
               className="group relative bg-slate-50/50 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
             >
               <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">

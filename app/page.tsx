@@ -7,7 +7,18 @@ import { ContactForm } from '@/components/contact-form'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
-import projectsData from '@/data/projects.json'
+
+interface Project {
+  id?: number
+  title: string
+  cat: string
+  desc: string
+  tags: string[]
+  img: string
+  link?: string
+  showOnHome?: boolean
+  homeSelectionOrder?: number | null
+}
 
 
 // Languages/Tech Stack Data
@@ -82,7 +93,26 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 
 export default function Home() {
   // Only show the first 9 projects on the home page
-  const [projectsList] = useState(projectsData.slice(0, 9))
+  const [projectsList, setProjectsList] = useState<Project[]>([])
+
+  useEffect(() => {
+    const fetchProjects = async () => {
+      try {
+        const response = await fetch('/api/projects')
+        if (!response.ok) return
+        const data = await response.json()
+        if (Array.isArray(data)) {
+          const selectedForHome = data
+            .filter((project: Project) => Boolean(project.showOnHome))
+            .sort((a: Project, b: Project) => (a.homeSelectionOrder ?? 99) - (b.homeSelectionOrder ?? 99))
+          setProjectsList(selectedForHome.length > 0 ? selectedForHome.slice(0, 9) : data.slice(0, 9))
+        }
+      } catch {
+      }
+    }
+
+    fetchProjects()
+  }, [])
 
   const { scrollYProgress } = useScroll()
 

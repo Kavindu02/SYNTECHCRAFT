@@ -7,6 +7,10 @@ import { AnimatedBrandWord } from "@/components/animated-brand-word"
 const LOADER_EXIT_MS = 1450
 const LOADER_HIDE_MS = 1700
 
+function isAdminPath(path: string) {
+  return path === '/admin' || path.startsWith('/admin/')
+}
+
 export function RouteTransitionLoader() {
   const pathname = usePathname()
   const hasMountedRef = useRef(false)
@@ -22,6 +26,14 @@ export function RouteTransitionLoader() {
     }
 
     if (previousPathRef.current === pathname) {
+      return
+    }
+
+    const isAdminToAdmin = isAdminPath(previousPathRef.current) && isAdminPath(pathname)
+    if (isAdminToAdmin) {
+      previousPathRef.current = pathname
+      setIsVisible(false)
+      setIsExiting(false)
       return
     }
 

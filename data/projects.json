@@ -1,6 +1,4 @@
 [
-
-
   {
     "title": "Eduran.lk",
     "cat": "learning management system",
@@ -13,11 +11,13 @@
       "My SQL"
     ],
     "img": "/images/projects/eduran.lk.png",
-    "link": "https://eduran.lk/"
+    "link": "https://eduran.lk/",
+    "showOnHome": true,
+    "homeSelectionOrder": 1,
+    "id": 1
   },
-
-
-   {
+  {
+    "id": 2,
     "title": "Dewceylon Travels (Ongoing Project)",
     "cat": "Travel & Tourism",
     "desc": "DewCeylon Travels is a travel booking platform with full frontend and backend integration, ensuring smooth and reliable performance. It includes a functional admin panel to manage bookings, users, and travel packages. The platform offers various destinations, competitive pricing, personalized packages, and a convenient taxi service for a complete travel experience.",
@@ -29,12 +29,13 @@
       "My SQL"
     ],
     "img": "/images/projects/dewceylon.jpeg",
-    "link": "https://www.dewceylon.com/"
+    "link": "https://www.dewceylon.com/",
+    "showOnHome": true,
+    "homeSelectionOrder": 2
   },
-
-
   {
-    "title": "Ceyloria Travels (Ongoing Project)",
+    "id": 3,
+    "title": "Ceyloria Travels",
     "cat": "Travel & Tourism",
     "desc": "Ceyloria Travels is a comprehensive travel booking platform designed to provide users with a seamless experience for planning and reserving their dream vacations. The system includes both frontend and backend integration, ensuring smooth performance and reliability. It features a fully functional admin panel for managing bookings, users, and travel packages efficiently. The platform offers a wide range of destinations, competitive pricing, and personalized travel packages to enhance the overall user experience.",
     "tags": [
@@ -45,11 +46,12 @@
       "My SQL"
     ],
     "img": "/images/projects/ceyloria.jpeg",
-    "link": "https://www.ceyloriatravels.com/"
+    "link": "https://www.ceyloriatravels.com/",
+    "showOnHome": true,
+    "homeSelectionOrder": 3
   },
-
-
   {
+    "id": 4,
     "title": "IRK Innovations",
     "cat": "Engineering & Consultancy",
     "desc": "IRK Innovations is a modern engineering consultancy and globaltech sourcing platform built with Next.js, TypeScript, and MongoDB. It provides electronics product design, manufacturing optimization, component sourcing, and reliable global factory connections to help businesses develop high-quality tech products efficiently.",
@@ -60,11 +62,12 @@
       "TailwindCSS"
     ],
     "img": "/images/projects/project-1.png",
-    "link": "https://www.irkinnovations.com/"
+    "link": "https://www.irkinnovations.com/",
+    "showOnHome": true,
+    "homeSelectionOrder": 4
   },
-
-
   {
+    "id": 5,
     "title": "Micro CCTV Security Solution",
     "cat": "Ecommerce",
     "desc": "Micro CCTV is a professional CCTV service platform developed using the MERN (MongoDB, Express, React, Node.js) stack. It offers live camera feeds, package booking, and a customer-friendly dashboard.",
@@ -76,11 +79,12 @@
       "MongoDB"
     ],
     "img": "/images/projects/project-2.png",
-    "link": "https://www.microcctvsecuritysolutions.store/"
+    "link": "https://www.microcctvsecuritysolutions.store/",
+    "showOnHome": true,
+    "homeSelectionOrder": 5
   },
-
-
   {
+    "id": 6,
     "title": "Anchorway Services",
     "cat": "Cleaning Services",
     "desc": "Anchorway Services is a professional cleaning services platform based in Australia. The system is designed to showcase residential and commercial cleaning services, allow customers to request quotes, book services online, and manage inquiries through a simple and clean dashboard experience.",
@@ -89,11 +93,12 @@
       "TailwindCSS"
     ],
     "img": "/images/projects/project-3.jpeg",
-    "link": "https://anchorwayservices.com/"
+    "link": "https://anchorwayservices.com/",
+    "showOnHome": true,
+    "homeSelectionOrder": 6
   },
-
-
-   {
+  {
+    "id": 7,
     "title": "Mazeline Events",
     "cat": "Admin Dashboard",
     "desc": "A complete web-based rental management system with frontend and backend integration, powered by a MySQL database. The Admin Dashboard provides a real-time overview of equipment, active rentals, customers, and revenue, helping manage inventory, orders, expenses, and users efficiently through a modern and responsive interface.",
@@ -105,11 +110,12 @@
       "My SQL"
     ],
     "img": "/images/projects/mazelineevents.jpeg",
-    "link": "https://mazelineevents.com/"
+    "link": "https://mazelineevents.com/",
+    "showOnHome": true,
+    "homeSelectionOrder": 7
   },
-
-
   {
+    "id": 8,
     "title": "PFP Frontend Developmnent",
     "cat": "Marketing",
     "desc": "PFP Frontend Development is a modern, responsive web interface built using React.js and Tailwind CSS. It focuses on clean UI design, smooth user experience, and performance optimization, delivering a visually appealing and user-friendly frontend solution suitable for marketing and business platforms.",
@@ -118,14 +124,15 @@
       "TailwindCSS"
     ],
     "img": "/images/projects/project-4.png",
-    "link": "https://sdk-solution-pfp-frontend-developme.vercel.app/"
+    "link": "https://sdk-solution-pfp-frontend-developme.vercel.app/",
+    "showOnHome": true,
+    "homeSelectionOrder": 8
   },
-
-
   {
-    "title": "Tailor Shop Website",
+    "id": 9,
+    "title": "Beauty salon Website",
     "cat": "Business",
-    "desc": "Tailor Shop Website is a modern, responsive platform built with React.js and Tailwind CSS for tailoring businesses. It features online appointment booking and a digital measurement system, offering a clean UI and smooth user experience for efficient shop management.\n",
+    "desc": "Beauty salon Website is a modern, responsive platform built with React.js and Tailwind CSS for beauty salons. It features online appointment booking and a digital consultation system, offering a clean UI and smooth user experience for efficient salon management.\n",
     "tags": [
       "Reactjs",
       "TailwindCSS",
@@ -134,11 +141,12 @@
       "MongoDB"
     ],
     "img": "/images/projects/project-6.png",
-    "link": "https://beautysalon.sdksolutions.online/"
+    "link": "https://beautysalon.sdksolutions.online/",
+    "showOnHome": true,
+    "homeSelectionOrder": 9
   },
-
-
   {
+    "id": 10,
     "title": "SDK Travels & Tours",
     "cat": "Travel & Tourism",
     "desc": "SDK Travels is a modern travel and tour booking platform developed using the MERN (MongoDB, Express, React, Node.js) stack. It allows users to explore Sri Lanka tour packages, accommodations, and make online bookings through a user-friendly dashboard.",
@@ -150,11 +158,12 @@
       "MongoDB"
     ],
     "img": "/images/projects/project-5.png",
-    "link": "https://sdk-travels-frontend.vercel.app/"
+    "link": "https://sdk-travels-frontend.vercel.app/",
+    "showOnHome": true,
+    "homeSelectionOrder": 13
   },
-
-
   {
+    "id": 11,
     "title": "RG Clothing",
     "cat": "Fashion & Textiles",
     "desc": "RG Clothing is a modern bedding and home textile e-commerce platform specializing in high-quality bedsheets and fabric products. The website allows customers to explore collections, view product details, and place online orders through a smooth and user-friendly shopping experience.",
@@ -165,11 +174,12 @@
       "Nextjs"
     ],
     "img": "/images/projects/project-7.jpeg",
-    "link": "https://rg-clothing-website.vercel.app/"
+    "link": "https://rg-clothing-website.vercel.app/",
+    "showOnHome": true,
+    "homeSelectionOrder": 10
   },
-
-
   {
+    "id": 12,
     "title": "KR Motors",
     "cat": "E-Commerce",
     "desc": "KR Motors is a full-featured vehicle management and sales platform developed with the MERN stack (MongoDB, Express, React, Node.js). It includes vehicle listings, customer inquiries, service booking, and an admin dashboard for inventory and sales tracking.",
@@ -181,11 +191,12 @@
       "MongoDB"
     ],
     "img": "/images/projects/project-8.jpeg",
-    "link": "https://kr-motors-fe.vercel.app/"
+    "link": "https://kr-motors-fe.vercel.app/",
+    "showOnHome": true,
+    "homeSelectionOrder": 12
   },
-
-  
   {
+    "id": 13,
     "title": "HypeWalk Shoe Store",
     "cat": "E-Commerce",
     "desc": "HypeWalk is a modern e-commerce platform for sneaker enthusiasts, built with the MERN stack (MongoDB, Express, React, Node.js). It features product browsing, secure checkout, order tracking, and an interactive user dashboard.",
@@ -197,9 +208,8 @@
       "MongoDB"
     ],
     "img": "/images/projects/project-9.png",
-    "link": "https://hype-walk.vercel.app/"
+    "link": "https://hype-walk.vercel.app/",
+    "showOnHome": true,
+    "homeSelectionOrder": 11
   }
-
-
-  
 ]
