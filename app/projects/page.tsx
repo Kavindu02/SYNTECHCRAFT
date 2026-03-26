@@ -8,6 +8,7 @@ import { ArrowUpRight } from "lucide-react";
 import "../globals.css";
 import Link from "next/link";
 import { Home } from "lucide-react";
+import projectsData from "@/data/projects.json";
 
 interface Project {
   id?: number;
@@ -21,36 +22,70 @@ interface Project {
   homeSelectionOrder?: number | null;
 }
 
+function sortProjects(data: Project[]) {
+  return [...data].sort((a: Project, b: Project) => {
+    const aSelected = Boolean(a.showOnHome);
+    const bSelected = Boolean(b.showOnHome);
+
+    if (aSelected && !bSelected) return -1;
+    if (!aSelected && bSelected) return 1;
+
+    if (aSelected && bSelected) {
+      return (a.homeSelectionOrder ?? Number.MAX_SAFE_INTEGER) - (b.homeSelectionOrder ?? Number.MAX_SAFE_INTEGER);
+    }
+
+    return (b.id ?? 0) - (a.id ?? 0);
+  });
+}
+
+function asProjectsArray(value: unknown): Project[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.map((item, index) => {
+    const candidate = item as Partial<Project>;
+
+    return {
+      id: typeof candidate.id === "number" ? candidate.id : index + 1,
+      title: typeof candidate.title === "string" ? candidate.title : "",
+      cat: typeof candidate.cat === "string" ? candidate.cat : "",
+      desc: typeof candidate.desc === "string" ? candidate.desc : "",
+      tags: Array.isArray(candidate.tags) ? candidate.tags.filter((tag): tag is string => typeof tag === "string") : [],
+      img: typeof candidate.img === "string" ? candidate.img : "",
+      link: typeof candidate.link === "string" ? candidate.link : "",
+      showOnHome: Boolean(candidate.showOnHome),
+      homeSelectionOrder:
+        typeof candidate.homeSelectionOrder === "number" && Number.isInteger(candidate.homeSelectionOrder)
+          ? candidate.homeSelectionOrder
+          : null,
+    };
+  });
+}
+
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<Project[]>(() =>
+    sortProjects(asProjectsArray(projectsData as unknown[]))
+  );
 
   useEffect(() => {
     const fetchProjects = async () => {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4000);
+
       try {
-        const response = await fetch('/api/projects');
+        const response = await fetch('/api/projects', { signal: controller.signal });
         if (!response.ok) return;
         const data = await response.json();
         if (!Array.isArray(data)) {
-          setProjects([]);
+          clearTimeout(timeoutId);
           return;
         }
 
-        const ordered = [...data].sort((a: Project, b: Project) => {
-          const aSelected = Boolean(a.showOnHome);
-          const bSelected = Boolean(b.showOnHome);
-
-          if (aSelected && !bSelected) return -1;
-          if (!aSelected && bSelected) return 1;
-
-          if (aSelected && bSelected) {
-            return (a.homeSelectionOrder ?? Number.MAX_SAFE_INTEGER) - (b.homeSelectionOrder ?? Number.MAX_SAFE_INTEGER);
-          }
-
-          return (b.id ?? 0) - (a.id ?? 0);
-        });
-
-        setProjects(ordered);
+        setProjects(sortProjects(asProjectsArray(data)));
       } catch {
+      } finally {
+        clearTimeout(timeoutId);
       }
     };
 

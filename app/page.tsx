@@ -4,6 +4,7 @@ import Navbar from '@/components/navbar'
 import Hero from '@/components/hero'
 import Image from 'next/image'
 import { ContactForm } from '@/components/contact-form'
+import projectsData from '@/data/projects.json'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useRef, useState } from 'react'
 import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
@@ -18,6 +19,39 @@ interface Project {
   link?: string
   showOnHome?: boolean
   homeSelectionOrder?: number | null
+}
+
+function asProjectsArray(value: unknown): Project[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.map((item, index) => {
+    const candidate = item as Partial<Project>
+
+    return {
+      id: typeof candidate.id === 'number' ? candidate.id : index + 1,
+      title: typeof candidate.title === 'string' ? candidate.title : '',
+      cat: typeof candidate.cat === 'string' ? candidate.cat : '',
+      desc: typeof candidate.desc === 'string' ? candidate.desc : '',
+      tags: Array.isArray(candidate.tags) ? candidate.tags.filter((tag): tag is string => typeof tag === 'string') : [],
+      img: typeof candidate.img === 'string' ? candidate.img : '',
+      link: typeof candidate.link === 'string' ? candidate.link : '',
+      showOnHome: Boolean(candidate.showOnHome),
+      homeSelectionOrder:
+        typeof candidate.homeSelectionOrder === 'number' && Number.isInteger(candidate.homeSelectionOrder)
+          ? candidate.homeSelectionOrder
+          : null,
+    }
+  })
+}
+
+function getHomeProjects(data: Project[]) {
+  const selectedForHome = data
+    .filter((project) => Boolean(project.showOnHome))
+    .sort((a, b) => (a.homeSelectionOrder ?? 99) - (b.homeSelectionOrder ?? 99))
+
+  return selectedForHome.length > 0 ? selectedForHome.slice(0, 9) : data.slice(0, 9)
 }
 
 
@@ -93,21 +127,25 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 
 export default function Home() {
   // Only show the first 9 projects on the home page
-  const [projectsList, setProjectsList] = useState<Project[]>([])
+  const [projectsList, setProjectsList] = useState<Project[]>(() =>
+    getHomeProjects(asProjectsArray(projectsData as unknown[]))
+  )
 
   useEffect(() => {
     const fetchProjects = async () => {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 4000)
+
       try {
-        const response = await fetch('/api/projects')
+        const response = await fetch('/api/projects', { signal: controller.signal })
         if (!response.ok) return
         const data = await response.json()
         if (Array.isArray(data)) {
-          const selectedForHome = data
-            .filter((project: Project) => Boolean(project.showOnHome))
-            .sort((a: Project, b: Project) => (a.homeSelectionOrder ?? 99) - (b.homeSelectionOrder ?? 99))
-          setProjectsList(selectedForHome.length > 0 ? selectedForHome.slice(0, 9) : data.slice(0, 9))
+          setProjectsList(getHomeProjects(asProjectsArray(data)))
         }
       } catch {
+      } finally {
+        clearTimeout(timeoutId)
       }
     }
 

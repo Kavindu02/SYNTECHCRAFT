@@ -37,6 +37,8 @@ type ProjectPayload = {
 type ProjectWithId = ProjectPayload & { id: number };
 
 const projectsFilePath = path.join(process.cwd(), 'data', 'projects.json');
+const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
+const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
 
 function normalizeTags(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -115,7 +117,10 @@ async function writeProjectsToFile(projects: ProjectWithId[]) {
 export async function GET() {
   try {
     const pool = getPool();
-    const [rows] = await pool.query('SELECT * FROM projects ORDER BY id DESC');
+    const [rows] = await pool.query({
+      sql: 'SELECT * FROM projects ORDER BY id DESC',
+      timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
+    });
 
     const dbProjects = (rows as any[]).map((project) => {
       const rawShowOnHome = project.show_on_home ?? project.showOnHome;
@@ -138,14 +143,22 @@ export async function GET() {
     });
 
     if (dbProjects.length > 0) {
-      return NextResponse.json(dbProjects);
+      return NextResponse.json(dbProjects, {
+        headers: {
+          'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
+        },
+      });
     }
   } catch {
     // Fallback to JSON when DB is unavailable.
   }
 
   const fileProjects = await readProjectsFromFile();
-  return NextResponse.json(fileProjects);
+  return NextResponse.json(fileProjects, {
+    headers: {
+      'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
+    },
+  });
 }
 
 export async function POST(request: Request) {

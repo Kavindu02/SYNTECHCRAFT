@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LogOut, LayoutDashboard, FolderKanban } from 'lucide-react'
+import projectsData from '@/data/projects.json'
 
 interface Project {
   id?: number;
@@ -17,8 +18,33 @@ interface Project {
   homeSelectionOrder?: number | null;
 }
 
+function asProjectsArray(value: unknown): Project[] {
+  if (!Array.isArray(value)) {
+    return []
+  }
+
+  return value.map((item, index) => {
+    const candidate = item as Partial<Project>
+
+    return {
+      id: typeof candidate.id === 'number' ? candidate.id : index + 1,
+      title: typeof candidate.title === 'string' ? candidate.title : '',
+      cat: typeof candidate.cat === 'string' ? candidate.cat : '',
+      desc: typeof candidate.desc === 'string' ? candidate.desc : '',
+      tags: Array.isArray(candidate.tags) ? candidate.tags.filter((tag): tag is string => typeof tag === 'string') : [],
+      img: typeof candidate.img === 'string' ? candidate.img : '',
+      link: typeof candidate.link === 'string' ? candidate.link : '',
+      showOnHome: Boolean(candidate.showOnHome),
+      homeSelectionOrder:
+        typeof candidate.homeSelectionOrder === 'number' && Number.isInteger(candidate.homeSelectionOrder)
+          ? candidate.homeSelectionOrder
+          : null,
+    }
+  })
+}
+
 export default function AdminDashboard() {
-  const [projects, setProjects] = useState<Project[]>([])
+  const [projects, setProjects] = useState<Project[]>(() => asProjectsArray(projectsData as unknown[]))
   const [selectionInputs, setSelectionInputs] = useState<Record<number, string>>({})
   const router = useRouter()
 
@@ -27,12 +53,19 @@ export default function AdminDashboard() {
   }, [])
 
   const fetchProjects = async () => {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 4000)
+
     try {
-      const res = await fetch('/api/projects')
+      const res = await fetch('/api/projects', { signal: controller.signal })
+      if (!res.ok) return
       const data = await res.json()
-      setProjects(Array.isArray(data) ? data : [])
+      if (Array.isArray(data)) {
+        setProjects(asProjectsArray(data))
+      }
     } catch {
-      setProjects([])
+    } finally {
+      clearTimeout(timeoutId)
     }
   }
 
