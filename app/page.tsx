@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { ContactForm } from '@/components/contact-form'
 import projectsData from '@/data/projects.json'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
 
 interface Project {
@@ -154,10 +154,38 @@ export default function Home() {
 
   const { scrollYProgress } = useScroll()
 
-  // Independent floating motions for each stat card
-  const y1 = useTransform(scrollYProgress, [0, 1], [60, -60])
-  const y2 = useTransform(scrollYProgress, [0, 1], [30, -30])
-  const y3 = useTransform(scrollYProgress, [0, 1], [90, -90])
+  // Unified floating motion for stats strip (keeps all counters on one line)
+  const statsFloatY = useTransform(scrollYProgress, [0, 1], [18, -18])
+  const aboutImageY = useTransform(scrollYProgress, [0, 1], [18, -18])
+  const aboutImageRotate = useTransform(scrollYProgress, [0, 1], [-0.6, 0.6])
+  const aboutImageScale = useTransform(scrollYProgress, [0, 1], [0.985, 1])
+  const aboutImageTiltX = useMotionValue(0)
+  const aboutImageTiltY = useMotionValue(0)
+  const aboutImageHoverScale = useMotionValue(1)
+  const aboutImageTiltXSpring = useSpring(aboutImageTiltX, { stiffness: 180, damping: 22, mass: 0.6 })
+  const aboutImageTiltYSpring = useSpring(aboutImageTiltY, { stiffness: 180, damping: 22, mass: 0.6 })
+  const aboutImageHoverScaleSpring = useSpring(aboutImageHoverScale, { stiffness: 220, damping: 24, mass: 0.55 })
+  const aboutImageFinalScale = useTransform(
+    [aboutImageScale, aboutImageHoverScaleSpring],
+    ([baseScale, hoverScale]) => Number(baseScale) * Number(hoverScale)
+  )
+
+  const handleAboutImageMove = (event: MouseEvent<HTMLDivElement>) => {
+    const { currentTarget, clientX, clientY } = event
+    const rect = currentTarget.getBoundingClientRect()
+    const pointerX = (clientX - rect.left) / rect.width - 0.5
+    const pointerY = (clientY - rect.top) / rect.height - 0.5
+
+    aboutImageTiltX.set(pointerY * -10)
+    aboutImageTiltY.set(pointerX * 10)
+    aboutImageHoverScale.set(1.015)
+  }
+
+  const handleAboutImageLeave = () => {
+    aboutImageTiltX.set(0)
+    aboutImageTiltY.set(0)
+    aboutImageHoverScale.set(1)
+  }
 
   return (
     <main className="min-h-screen bg-[#FAF9F6] scroll-smooth selection:bg-[#ffb400] selection:text-black">
@@ -229,10 +257,21 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
+            onMouseMove={handleAboutImageMove}
+            onMouseLeave={handleAboutImageLeave}
+            style={{
+              y: aboutImageY,
+              rotate: aboutImageRotate,
+              scale: aboutImageFinalScale,
+              rotateX: aboutImageTiltXSpring,
+              rotateY: aboutImageTiltYSpring,
+              transformPerspective: 1200,
+            }}
             className="w-full aspect-[4/5] bg-slate-200 rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[15px] border-white shadow-3xl relative z-10 group"
           >
             <img src="about.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000" alt="SDK Team" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
+            <div className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent skew-x-[-22deg] translate-x-[-180%] group-hover:translate-x-[520%] transition-transform duration-1200 ease-out"></div>
             <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-[40px] md:rounded-[60px]"></div>
           </motion.div>
 
@@ -297,10 +336,21 @@ export default function Home() {
       <section className="relative py-16 md:py-20 overflow-hidden bg-[#0a0a0a]">
         {/* Cinematic Background */}
         <div className="absolute inset-0 z-0">
-          <img
+          <motion.img
             src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=2070"
             className="w-full h-full object-cover opacity-25 scale-110 grayscale-[0.5]"
             alt="Advanced Software Coding"
+            animate={{
+              scale: [1.1, 1.16, 1.12, 1.1],
+              x: [0, 18, -12, 0],
+              y: [0, -10, 8, 0],
+              rotate: [0, 0.25, -0.2, 0],
+            }}
+            transition={{
+              duration: 20,
+              repeat: Infinity,
+              ease: 'easeInOut',
+            }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/90 via-transparent to-[#0a0a0a]/90"></div>
           <div className="absolute inset-0 bg-black/10"></div>
@@ -312,35 +362,36 @@ export default function Home() {
           <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[300px] md:w-[600px] h-[300px] md:h-[600px] bg-[#ffb400]/5 blur-[100px] md:blur-[150px] rounded-full"></div>
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 md:px-8 relative z-10">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-6 lg:px-8 relative z-10">
+          <div className="flex flex-nowrap items-end justify-between gap-2 sm:gap-4 md:gap-5 lg:gap-8">
             {[
-              { val: 20, suffix: '+', label: 'Projects Delivered', y: y1 },
-              { val: 15, suffix: '+', label: 'Happy Clients', y: y2 },
-              { val: 10, suffix: '+', label: 'Tech Experts', y: y3 }
+              { val: 20, suffix: '+', label: 'Projects Delivered' },
+              { val: 15, suffix: '+', label: 'Happy Clients' },
+              { val: 10, suffix: '+', label: 'Tech Experts' }
             ].map((stat, i) => (
               <motion.div
                 key={i}
-                style={{ y: typeof window !== 'undefined' && window.innerWidth > 768 ? stat.y : 0 }}
-                whileInView={{ opacity: 1 }}
-                initial={{ opacity: 0 }}
+                style={{ y: statsFloatY }}
+                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 14 }}
+                transition={{ duration: 0.6, delay: i * 0.12 }}
                 viewport={{ once: false }}
-                className="flex flex-col items-center text-center group py-2 md:py-4"
+                className="relative min-w-0 flex-1 flex flex-col items-center text-center group py-2 md:py-3 lg:py-4"
               >
                 {/* Floating Number with Shadow Depth */}
-                <div className="relative mb-2 md:mb-4">
-                  <span className="text-7xl md:text-8xl lg:text-[120px] font-black text-white/90 tracking-tighter italic leading-none group-hover:text-[#ffb400] group-hover:scale-105 transition-all duration-700 block">
+                <div className="relative mb-2 md:mb-3 lg:mb-4">
+                  <span className="text-4xl sm:text-6xl md:text-7xl lg:text-[120px] font-black text-white/90 tracking-tighter italic leading-none group-hover:text-[#ffb400] group-hover:scale-105 transition-all duration-700 block">
                     <Counter value={stat.val} suffix={stat.suffix} />
                   </span>
                   {/* Backdrop glowing number for depth */}
-                  <span className="absolute inset-0 text-7xl md:text-8xl lg:text-[120px] font-black text-[#ffb400]/0 blur-2xl group-hover:text-[#ffb400]/20 transition-all duration-700 italic select-none pointer-events-none leading-none">
+                  <span className="absolute inset-0 text-4xl sm:text-6xl md:text-7xl lg:text-[120px] font-black text-[#ffb400]/0 blur-2xl group-hover:text-[#ffb400]/20 transition-all duration-700 italic select-none pointer-events-none leading-none">
                     <Counter value={stat.val} suffix={stat.suffix} />
                   </span>
                 </div>
 
                 <div className="flex flex-col items-center gap-3">
                   <div className="w-10 h-[2px] bg-[#ffb400] scale-x-50 group-hover:scale-x-150 transition-transform duration-700"></div>
-                  <span className="text-white font-black uppercase tracking-[0.4em] text-[8px] md:text-[10px] group-hover:translate-y-[-2px] transition-transform duration-500">
+                  <span className="text-white font-black uppercase whitespace-nowrap tracking-[0.2em] sm:tracking-[0.35em] md:tracking-[0.25em] lg:tracking-[0.35em] text-[7px] sm:text-[8px] md:text-[9px] lg:text-[10px] leading-none group-hover:translate-y-[-2px] transition-transform duration-500">
                     {stat.label}
                   </span>
                 </div>
@@ -353,7 +404,7 @@ export default function Home() {
       {/* Services Section */}
       <section id="services" className="py-24 md:py-40 px-6 md:px-8 relative overflow-hidden bg-[#FAF9F6]">
         {/* Modern Background Elements - Noise & Grid */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]"></div>
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(rgba(0,0,0,0.4)_0.5px,transparent_0.5px)] [background-size:3px_3px]"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:40px_40px] opacity-40"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">

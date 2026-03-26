@@ -52,7 +52,7 @@ export default function LoginPage() {
             <Lock className="text-black" size={28} />
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tighter italic uppercase">Admin <span className="text-[#ffb400] not-italic">Login</span></h1>
-          <p className="text-slate-500 font-medium mt-2 tracking-wide uppercase text-[9px] sm:text-[10px]">SDK Solutions Control Panel</p>
+          <p className="text-slate-500 font-medium mt-2 tracking-wide uppercase text-[9px] sm:text-[10px]">Syntechcraft Control Panel</p>
         </div>
 
         <div className="bg-white p-5 sm:p-8 md:p-10 rounded-2xl md:rounded-[40px] shadow-3xl border border-slate-100">

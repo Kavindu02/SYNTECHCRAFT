@@ -290,7 +290,7 @@ const Hero = () => {
               ))}
             </div>
 
-            <div className="relative z-10 aspect-[4/5] rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[16px] border-white shadow-3xl bg-slate-100">
+            <div className="relative z-10 aspect-[4/5] rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[16px] border-white shadow-3xl bg-slate-100 group">
                <motion.img 
                 src="https://res.cloudinary.com/dz0hl3qmz/image/upload/v1773734891/man-is-working-computer-with-computer-screen-that-says-time_1_ttudsy.jpg" 
                 className="w-full h-full object-cover" 
@@ -308,6 +308,7 @@ const Hero = () => {
                 }}
                />
                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+               <div className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/35 to-transparent skew-x-[-22deg] translate-x-[-180%] group-hover:translate-x-[520%] transition-transform duration-1200 ease-out"></div>
                <div className="absolute inset-0 pointer-events-none z-20">
                  {innerBubbles.map((bubble, index) => (
                    <motion.div
