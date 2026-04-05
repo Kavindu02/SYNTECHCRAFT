@@ -1,6 +1,7 @@
 import { Db, MongoClient } from 'mongodb';
 
 let clientPromise: Promise<MongoClient> | null = null;
+type MongoClientOptions = ConstructorParameters<typeof MongoClient>[1];
 
 const MONGO_URI_KEYS = [
   'MONGODB_URI',
@@ -23,6 +24,11 @@ const MONGO_PROJECTS_COLLECTION_KEYS = [
   'MONGODB_PROJECTS_COLLECTION',
   'MONGO_PROJECTS_COLLECTION',
 ];
+
+const DEFAULT_MONGO_SERVER_SELECTION_TIMEOUT_MS = 2500;
+const DEFAULT_MONGO_CONNECT_TIMEOUT_MS = 2500;
+const DEFAULT_MONGO_CONNECT_MAX_ATTEMPTS = 3;
+const DEFAULT_MONGO_CONNECT_RETRY_DELAY_MS = 400;
 
 function normalizeEnvValue(value: string) {
   const trimmed = value.trim();
@@ -58,6 +64,76 @@ function hasAnyEnv(keys: string[]) {
     const value = process.env[key];
     return typeof value === 'string' && normalizeEnvValue(value).length > 0;
   });
+}
+
+function getPositiveIntegerEnv(key: string, fallback: number) {
+  const raw = process.env[key];
+
+  if (typeof raw !== 'string') {
+    return fallback;
+  }
+
+  const normalized = normalizeEnvValue(raw);
+  const parsed = Number(normalized);
+
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return fallback;
+  }
+
+  return Math.floor(parsed);
+}
+
+function isTransientMongoConnectError(error: unknown) {
+  const message = error instanceof Error ? error.message : String(error ?? '');
+  const normalized = message.toUpperCase();
+
+  return (
+    normalized.includes('ENOTFOUND') ||
+    normalized.includes('EAI_AGAIN') ||
+    normalized.includes('ETIMEOUT') ||
+    normalized.includes('ECONNRESET') ||
+    normalized.includes('MONGOSERVERSELECTIONERROR')
+  );
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function connectMongoClientWithRetry(
+  uri: string,
+  options: MongoClientOptions,
+  maxAttempts: number,
+  retryDelayMs: number
+) {
+  let lastError: unknown;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const client = new MongoClient(uri, options);
+
+    try {
+      return await client.connect();
+    } catch (error) {
+      lastError = error;
+
+      try {
+        await client.close();
+      } catch {
+      }
+
+      const canRetry = attempt < maxAttempts && isTransientMongoConnectError(error);
+
+      if (!canRetry) {
+        throw error;
+      }
+
+      await sleep(retryDelayMs * attempt);
+    }
+  }
+
+  throw lastError instanceof Error
+    ? lastError
+    : new Error('Failed to connect to MongoDB.');
 }
 
 function isMongoUri(value: string) {
@@ -141,20 +217,47 @@ function getMongoUriOrThrow() {
 async function getMongoClient() {
   if (!clientPromise) {
     const uri = getMongoUriOrThrow();
-    const client = new MongoClient(uri, {
+
+    const serverSelectionTimeoutMS = getPositiveIntegerEnv(
+      'MONGODB_SERVER_SELECTION_TIMEOUT_MS',
+      DEFAULT_MONGO_SERVER_SELECTION_TIMEOUT_MS
+    );
+
+    const connectTimeoutMS = getPositiveIntegerEnv(
+      'MONGODB_CONNECT_TIMEOUT_MS',
+      DEFAULT_MONGO_CONNECT_TIMEOUT_MS
+    );
+
+    const maxAttempts = getPositiveIntegerEnv(
+      'MONGODB_CONNECT_MAX_ATTEMPTS',
+      DEFAULT_MONGO_CONNECT_MAX_ATTEMPTS
+    );
+
+    const retryDelayMs = getPositiveIntegerEnv(
+      'MONGODB_CONNECT_RETRY_DELAY_MS',
+      DEFAULT_MONGO_CONNECT_RETRY_DELAY_MS
+    );
+
+    const options: MongoClientOptions = {
       maxPoolSize: 10,
       minPoolSize: 1,
-    });
+      serverSelectionTimeoutMS,
+      connectTimeoutMS,
+    };
 
-    clientPromise = client.connect().catch(async (error) => {
-      clientPromise = null;
-      try {
-        await client.close();
-      } catch {
+    clientPromise = connectMongoClientWithRetry(uri, options, maxAttempts, retryDelayMs).catch(
+      async (error) => {
+        clientPromise = null;
+        if (isTransientMongoConnectError(error)) {
+          console.warn('[mongodb] Connection failed after retries.', {
+            maxAttempts,
+            serverSelectionTimeoutMS,
+            connectTimeoutMS,
+          });
+        }
+        throw error;
       }
-
-      throw error;
-    });
+    );
   }
 
   return clientPromise;

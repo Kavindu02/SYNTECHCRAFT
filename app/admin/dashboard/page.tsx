@@ -53,7 +53,7 @@ export default function AdminDashboard() {
 
   const fetchProjects = async () => {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 4000)
+    const timeoutId = setTimeout(() => controller.abort(), 12000)
 
     try {
       const res = await fetch('/api/projects', { signal: controller.signal })

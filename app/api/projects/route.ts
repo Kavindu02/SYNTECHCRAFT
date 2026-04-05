@@ -4,12 +4,12 @@ import { getMongoDb, getMongoConfigDiagnostics, getProjectsCollectionName, hasMo
 import fallbackProjectsSource from '@/data/projects.json';
 
 const projectSchema = z.object({
-  title: z.string().min(1),
-  cat: z.string().min(1),
-  desc: z.string().min(1),
-  tags: z.array(z.string()).default([]),
-  img: z.string().min(1),
-  link: z.string().optional().or(z.literal('')),
+  title: z.string().trim().min(1),
+  cat: z.string().trim().min(1),
+  desc: z.string().trim().min(1),
+  tags: z.array(z.string().trim()).default([]),
+  img: z.string().trim().optional().default(''),
+  link: z.string().trim().optional().default(''),
   showOnHome: z.boolean().optional().default(false),
   homeSelectionOrder: z.number().int().min(1).nullable().optional(),
 });
@@ -49,12 +49,19 @@ type ProjectDocument = {
   updatedAt: Date;
 };
 
+type DeletedProjectDocument = {
+  identityKey: string;
+  id?: number | null;
+  deletedAt: Date;
+};
+
 type CounterDocument = {
   _id: string;
   seq: number;
 };
 
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
+const DEFAULT_PROJECT_IMAGE_PATH = '/images/projects/default.png';
 
 function getDatabaseErrorSummary(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -106,13 +113,18 @@ function normalizeProjectForResponse(project: Partial<ProjectDocument>, fallback
       ? project.id
       : fallbackId;
 
+  const normalizedImage =
+    typeof project.img === 'string' && project.img.trim().length > 0
+      ? project.img
+      : DEFAULT_PROJECT_IMAGE_PATH;
+
   return {
     id: normalizedId,
     title: typeof project.title === 'string' ? project.title : '',
     cat: typeof project.cat === 'string' ? project.cat : '',
     desc: typeof project.desc === 'string' ? project.desc : '',
     tags: normalizeTags(project.tags),
-    img: typeof project.img === 'string' ? project.img : '',
+    img: normalizedImage,
     link: typeof project.link === 'string' ? project.link : '',
     showOnHome: Boolean(project.showOnHome),
     homeSelectionOrder:
@@ -162,6 +174,45 @@ function createProjectsResponse(projects: ProjectWithId[], source: string) {
   });
 }
 
+function getProjectIdentityKey(project: Partial<ProjectWithId>) {
+  const title = typeof project.title === 'string' ? project.title.trim().toLowerCase() : '';
+  const link = typeof project.link === 'string' ? project.link.trim().toLowerCase() : '';
+
+  if (title || link) {
+    return `${title}::${link}`;
+  }
+
+  if (typeof project.id === 'number' && Number.isInteger(project.id) && project.id > 0) {
+    return `id:${project.id}`;
+  }
+
+  return '';
+}
+
+function mergeProjectLists(primary: ProjectWithId[], secondary: ProjectWithId[]) {
+  const merged: ProjectWithId[] = [];
+  const seenKeys = new Set<string>();
+
+  const pushIfMissing = (project: ProjectWithId) => {
+    const identityKey = getProjectIdentityKey(project);
+
+    if (identityKey && seenKeys.has(identityKey)) {
+      return;
+    }
+
+    if (identityKey) {
+      seenKeys.add(identityKey);
+    }
+
+    merged.push(project);
+  };
+
+  primary.forEach(pushIfMissing);
+  secondary.forEach(pushIfMissing);
+
+  return merged;
+}
+
 function isAdmin(request: Request) {
   const cookieHeader = request.headers.get('cookie') || '';
   return cookieHeader.split(';').some((cookie) => cookie.trim() === 'admin_session=true');
@@ -170,6 +221,50 @@ function isAdmin(request: Request) {
 async function getProjectsCollection() {
   const db = await getMongoDb();
   return db.collection<ProjectDocument>(getProjectsCollectionName());
+}
+
+async function getDeletedProjectsCollection() {
+  const db = await getMongoDb();
+  return db.collection<DeletedProjectDocument>('projects_deleted');
+}
+
+async function getDeletedProjectIdentityKeys() {
+  const deletedProjects = await getDeletedProjectsCollection();
+  const rows = await deletedProjects
+    .find({}, { projection: { identityKey: 1 } })
+    .toArray();
+
+  const keys = new Set<string>();
+
+  for (const row of rows) {
+    if (typeof row.identityKey === 'string' && row.identityKey.length > 0) {
+      keys.add(row.identityKey);
+    }
+  }
+
+  return keys;
+}
+
+async function markProjectIdentityDeleted(project: Partial<ProjectWithId>) {
+  const identityKey = getProjectIdentityKey(project);
+
+  if (!identityKey) {
+    return;
+  }
+
+  const deletedProjects = await getDeletedProjectsCollection();
+
+  await deletedProjects.updateOne(
+    { identityKey },
+    {
+      $set: {
+        identityKey,
+        id: typeof project.id === 'number' && Number.isInteger(project.id) ? project.id : null,
+        deletedAt: new Date(),
+      },
+    },
+    { upsert: true }
+  );
 }
 
 async function getNextProjectId() {
@@ -233,16 +328,36 @@ export async function GET() {
   try {
     const projects = await getProjectsCollection();
     const rows = await projects.find().sort({ id: -1 }).toArray();
+    const deletedIdentityKeys = await getDeletedProjectIdentityKeys();
 
     const response = rows.map((project: ProjectDocument, index: number) =>
       normalizeProjectForResponse(project, index + 1)
     );
 
-    if (response.length === 0 && fallbackProjects.length > 0) {
-      return createProjectsResponse(fallbackProjects, 'fallback-empty-db');
+    const filteredFallbackProjects = fallbackProjects.filter((project) => {
+      const identityKey = getProjectIdentityKey(project);
+
+      if (!identityKey) {
+        return true;
+      }
+
+      return !deletedIdentityKeys.has(identityKey);
+    });
+
+    if (response.length === 0 && filteredFallbackProjects.length > 0) {
+      return createProjectsResponse(filteredFallbackProjects, 'fallback-empty-db');
     }
 
-    return createProjectsResponse(response, 'database');
+    const fallbackProjectsForMerge = filteredFallbackProjects.map((project) => ({
+      ...project,
+      showOnHome: false,
+      homeSelectionOrder: null,
+    }));
+
+    const mergedResponse = mergeProjectLists(response, fallbackProjectsForMerge);
+    const source = mergedResponse.length > response.length ? 'database+fallback-merge' : 'database';
+
+    return createProjectsResponse(mergedResponse, source);
   } catch (error) {
     console.error('[api/projects][GET] Database read failed.', error);
     const summary = getDatabaseErrorSummary(error);
@@ -291,7 +406,12 @@ export async function POST(request: Request) {
 
   const normalizedProject: ProjectPayload = {
     ...project,
-    link: project.link || '',
+    title: project.title.trim(),
+    cat: project.cat.trim(),
+    desc: project.desc.trim(),
+    tags: project.tags.map((tag) => tag.trim()).filter(Boolean),
+    img: (project.img || '').trim() || DEFAULT_PROJECT_IMAGE_PATH,
+    link: (project.link || '').trim(),
     showOnHome: Boolean(project.showOnHome),
     homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
   };
@@ -373,7 +493,12 @@ export async function PUT(request: Request) {
 
   const normalizedProject: ProjectWithId = {
     ...project,
-    link: project.link || '',
+    title: project.title.trim(),
+    cat: project.cat.trim(),
+    desc: project.desc.trim(),
+    tags: project.tags.map((tag) => tag.trim()).filter(Boolean),
+    img: (project.img || '').trim() || DEFAULT_PROJECT_IMAGE_PATH,
+    link: (project.link || '').trim(),
     showOnHome: Boolean(project.showOnHome),
     homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
   };
@@ -459,17 +584,40 @@ export async function DELETE(request: Request) {
   }
 
   try {
+    const fallbackProject = getFallbackProjects().find((project) => project.id === id) ?? null;
     const projects = await getProjectsCollection();
-    const result = await projects.deleteOne({ id });
+    const existingProject = await projects.findOne({ id });
 
-    if (result.deletedCount === 0) {
+    if (!existingProject && !fallbackProject) {
       return NextResponse.json(
         { success: false, error: 'Project not found.' },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true });
+    const result = await projects.deleteOne({ id });
+
+    const deleteIdentityPayload: Partial<ProjectWithId> = {
+      id,
+      title:
+        typeof existingProject?.title === 'string'
+          ? existingProject.title
+          : typeof fallbackProject?.title === 'string'
+            ? fallbackProject.title
+            : '',
+      link:
+        typeof existingProject?.link === 'string'
+          ? existingProject.link
+          : typeof fallbackProject?.link === 'string'
+            ? fallbackProject.link
+            : '',
+    };
+
+    await markProjectIdentityDeleted(deleteIdentityPayload);
+
+    const source = result.deletedCount > 0 ? 'database' : 'fallback-only';
+
+    return NextResponse.json({ success: true, source });
   } catch (error) {
     console.error('[api/projects][DELETE] Database write failed.', error);
     const summary = getDatabaseErrorSummary(error);
