@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getPool, hasDatabaseConfig } from '@/lib/mysql';
+import { getPool, hasDatabaseConfig, getDatabaseConfigDiagnostics } from '@/lib/mysql';
 import projectsData from '@/data/projects.json';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -40,6 +40,7 @@ const projectsFilePath = path.join(process.cwd(), 'data', 'projects.json');
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
 const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
 const HAS_DATABASE_CONFIG = hasDatabaseConfig();
+const DATABASE_CONFIG_DIAGNOSTICS = getDatabaseConfigDiagnostics();
 const PROJECTS_DATA_SEED: unknown[] = Array.isArray(projectsData) ? projectsData : [];
 
 type DatabaseErrorLike = {
@@ -100,8 +101,14 @@ function mutationUnavailableErrorMessage(databaseErrorSummary?: string | null) {
     ? 'Failed to persist project data. Database and file fallback are unavailable.'
     : 'Project write is unavailable in this deployment. Set DATABASE_URL or DB_HOST/DB_USER/DB_PASSWORD/DB_NAME in your deployment environment.';
 
+  const diagnosticsMessage = `Detected env -> URL:${DATABASE_CONFIG_DIAGNOSTICS.hasUrl}, HOST:${DATABASE_CONFIG_DIAGNOSTICS.hasHost}, USER:${DATABASE_CONFIG_DIAGNOSTICS.hasUser}, PASSWORD:${DATABASE_CONFIG_DIAGNOSTICS.hasPassword}, DB:${DATABASE_CONFIG_DIAGNOSTICS.hasDatabase}.`;
+
   if (HAS_DATABASE_CONFIG && databaseErrorSummary) {
-    return `${baseMessage} (${databaseErrorSummary})`;
+    return `${baseMessage} (${databaseErrorSummary}) ${diagnosticsMessage}`;
+  }
+
+  if (!HAS_DATABASE_CONFIG) {
+    return `${baseMessage} ${diagnosticsMessage}`;
   }
 
   return baseMessage;
