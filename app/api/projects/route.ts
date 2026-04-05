@@ -39,6 +39,22 @@ type ProjectWithId = ProjectPayload & { id: number };
 const projectsFilePath = path.join(process.cwd(), 'data', 'projects.json');
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
 const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
+const HAS_DATABASE_URL = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim().length > 0;
+
+function isReadOnlyFileWriteError(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const code = (error as { code?: unknown }).code;
+  return code === 'EROFS' || code === 'EACCES' || code === 'EPERM';
+}
+
+function mutationUnavailableErrorMessage() {
+  return HAS_DATABASE_URL
+    ? 'Failed to persist project data. Database and file fallback are unavailable.'
+    : 'Project write is unavailable in this deployment. Set DATABASE_URL in deployment environment.';
+}
 
 function normalizeTags(value: unknown): string[] {
   if (Array.isArray(value)) {
@@ -115,42 +131,44 @@ async function writeProjectsToFile(projects: ProjectWithId[]) {
 }
 
 export async function GET() {
-  try {
-    const pool = getPool();
-    const [rows] = await pool.query({
-      sql: 'SELECT * FROM projects ORDER BY id DESC',
-      timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
-    });
-
-    const dbProjects = (rows as any[]).map((project) => {
-      const rawShowOnHome = project.show_on_home ?? project.showOnHome;
-      return {
-        id: project.id,
-        title: project.title,
-        cat: project.cat,
-        desc: project.desc,
-        tags: normalizeTags(project.tags),
-        img: project.img,
-        link: project.link ?? '',
-        showOnHome: rawShowOnHome === true || rawShowOnHome === 1,
-        homeSelectionOrder:
-          typeof project.home_selection_order === 'number'
-            ? project.home_selection_order
-            : typeof project.homeSelectionOrder === 'number'
-              ? project.homeSelectionOrder
-              : null,
-      };
-    });
-
-    if (dbProjects.length > 0) {
-      return NextResponse.json(dbProjects, {
-        headers: {
-          'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
-        },
+  if (HAS_DATABASE_URL) {
+    try {
+      const pool = getPool();
+      const [rows] = await pool.query({
+        sql: 'SELECT * FROM projects ORDER BY id DESC',
+        timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
       });
+
+      const dbProjects = (rows as any[]).map((project) => {
+        const rawShowOnHome = project.show_on_home ?? project.showOnHome;
+        return {
+          id: project.id,
+          title: project.title,
+          cat: project.cat,
+          desc: project.desc,
+          tags: normalizeTags(project.tags),
+          img: project.img,
+          link: project.link ?? '',
+          showOnHome: rawShowOnHome === true || rawShowOnHome === 1,
+          homeSelectionOrder:
+            typeof project.home_selection_order === 'number'
+              ? project.home_selection_order
+              : typeof project.homeSelectionOrder === 'number'
+                ? project.homeSelectionOrder
+                : null,
+        };
+      });
+
+      if (dbProjects.length > 0) {
+        return NextResponse.json(dbProjects, {
+          headers: {
+            'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('[api/projects][GET] Database read failed. Falling back to file.', error);
     }
-  } catch {
-    // Fallback to JSON when DB is unavailable.
   }
 
   const fileProjects = await readProjectsFromFile();
@@ -168,36 +186,51 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
+  let project: ProjectPayload;
+
   try {
-    const project = projectSchema.parse(body);
-    const pool = getPool();
+    project = projectSchema.parse(body);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ success: false, error: 'Invalid project data' }, { status: 400 });
+    }
 
-    const [result] = await pool.execute(
-      'INSERT INTO projects (title, cat, `desc`, tags, img, link, show_on_home, home_selection_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        project.title,
-        project.cat,
-        project.desc,
-        JSON.stringify(project.tags),
-        project.img,
-        project.link || null,
-        project.showOnHome ? 1 : 0,
-        project.showOnHome ? project.homeSelectionOrder ?? null : null,
-      ]
+    return NextResponse.json(
+      { success: false, error: 'Failed to parse project data.' },
+      { status: 500 }
     );
+  }
 
-    const insertedId = (result as any).insertId;
+  if (HAS_DATABASE_URL) {
+    try {
+      const pool = getPool();
 
-    return NextResponse.json({
-      success: true,
-      project: { ...project, id: insertedId },
-    });
-  } catch {
-    // Continue to JSON fallback below.
+      const [result] = await pool.execute(
+        'INSERT INTO projects (title, cat, `desc`, tags, img, link, show_on_home, home_selection_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+          project.title,
+          project.cat,
+          project.desc,
+          JSON.stringify(project.tags),
+          project.img,
+          project.link || null,
+          project.showOnHome ? 1 : 0,
+          project.showOnHome ? project.homeSelectionOrder ?? null : null,
+        ]
+      );
+
+      const insertedId = (result as any).insertId;
+
+      return NextResponse.json({
+        success: true,
+        project: { ...project, id: insertedId },
+      });
+    } catch (error) {
+      console.error('[api/projects][POST] Database write failed.', error);
+    }
   }
 
   try {
-    const project = projectSchema.parse(body);
     const existing = await readProjectsFromFile();
     const nextId = existing.length > 0 ? Math.max(...existing.map((item) => item.id)) + 1 : 1;
     const savedProject: ProjectWithId = { ...project, id: nextId };
@@ -206,8 +239,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, project: savedProject });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: 'Invalid project data' }, { status: 400 });
+    if (isReadOnlyFileWriteError(error)) {
+      return NextResponse.json(
+        { success: false, error: mutationUnavailableErrorMessage() },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
@@ -224,32 +260,47 @@ export async function PUT(request: Request) {
 
   const body = await request.json();
 
+  let project: ProjectWithId;
+
   try {
-    const project = projectUpdateSchema.parse(body);
-    const pool = getPool();
+    project = projectUpdateSchema.parse(body);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ success: false, error: 'Invalid project data' }, { status: 400 });
+    }
 
-    await pool.execute(
-      'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ?, show_on_home = ?, home_selection_order = ? WHERE id = ?',
-      [
-        project.title,
-        project.cat,
-        project.desc,
-        JSON.stringify(project.tags),
-        project.img,
-        project.link || null,
-        project.showOnHome ? 1 : 0,
-        project.showOnHome ? project.homeSelectionOrder ?? null : null,
-        project.id,
-      ]
+    return NextResponse.json(
+      { success: false, error: 'Failed to parse project data.' },
+      { status: 500 }
     );
+  }
 
-    return NextResponse.json({ success: true, project });
-  } catch {
-    // Continue to JSON fallback below.
+  if (HAS_DATABASE_URL) {
+    try {
+      const pool = getPool();
+
+      await pool.execute(
+        'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ?, show_on_home = ?, home_selection_order = ? WHERE id = ?',
+        [
+          project.title,
+          project.cat,
+          project.desc,
+          JSON.stringify(project.tags),
+          project.img,
+          project.link || null,
+          project.showOnHome ? 1 : 0,
+          project.showOnHome ? project.homeSelectionOrder ?? null : null,
+          project.id,
+        ]
+      );
+
+      return NextResponse.json({ success: true, project });
+    } catch (error) {
+      console.error('[api/projects][PUT] Database write failed.', error);
+    }
   }
 
   try {
-    const project = projectUpdateSchema.parse(body);
     const existing = await readProjectsFromFile();
     const updated = existing.map((item) => (item.id === project.id ? project : item));
 
@@ -257,8 +308,11 @@ export async function PUT(request: Request) {
 
     return NextResponse.json({ success: true, project });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: 'Invalid project data' }, { status: 400 });
+    if (isReadOnlyFileWriteError(error)) {
+      return NextResponse.json(
+        { success: false, error: mutationUnavailableErrorMessage() },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
@@ -275,19 +329,34 @@ export async function DELETE(request: Request) {
 
   const body = await request.json();
 
+  let id: number;
+
   try {
-    const { id } = projectDeleteSchema.parse(body);
-    const pool = getPool();
+    id = projectDeleteSchema.parse(body).id;
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ success: false, error: 'Invalid delete request' }, { status: 400 });
+    }
 
-    await pool.execute('DELETE FROM projects WHERE id = ?', [id]);
+    return NextResponse.json(
+      { success: false, error: 'Failed to parse delete request.' },
+      { status: 500 }
+    );
+  }
 
-    return NextResponse.json({ success: true });
-  } catch {
-    // Continue to JSON fallback below.
+  if (HAS_DATABASE_URL) {
+    try {
+      const pool = getPool();
+
+      await pool.execute('DELETE FROM projects WHERE id = ?', [id]);
+
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      console.error('[api/projects][DELETE] Database write failed.', error);
+    }
   }
 
   try {
-    const { id } = projectDeleteSchema.parse(body);
     const existing = await readProjectsFromFile();
     const filtered = existing.filter((item) => item.id !== id);
 
@@ -295,8 +364,11 @@ export async function DELETE(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: 'Invalid delete request' }, { status: 400 });
+    if (isReadOnlyFileWriteError(error)) {
+      return NextResponse.json(
+        { success: false, error: mutationUnavailableErrorMessage() },
+        { status: 503 }
+      );
     }
 
     return NextResponse.json(
