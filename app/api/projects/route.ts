@@ -42,6 +42,12 @@ const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOU
 const HAS_DATABASE_CONFIG = hasDatabaseConfig();
 const PROJECTS_DATA_SEED: unknown[] = Array.isArray(projectsData) ? projectsData : [];
 
+type DatabaseErrorLike = {
+  code?: unknown;
+  message?: unknown;
+  sqlMessage?: unknown;
+};
+
 function isReadOnlyFileWriteError(error: unknown) {
   if (!error || typeof error !== 'object') {
     return false;
@@ -51,10 +57,54 @@ function isReadOnlyFileWriteError(error: unknown) {
   return code === 'EROFS' || code === 'EACCES' || code === 'EPERM';
 }
 
-function mutationUnavailableErrorMessage() {
-  return HAS_DATABASE_CONFIG
+function getDatabaseErrorSummary(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return null;
+  }
+
+  const dbError = error as DatabaseErrorLike;
+  const code = typeof dbError.code === 'string' ? dbError.code : '';
+  const message =
+    typeof dbError.sqlMessage === 'string'
+      ? dbError.sqlMessage
+      : typeof dbError.message === 'string'
+        ? dbError.message
+        : '';
+
+  if (code && message) {
+    return `${code}: ${message}`;
+  }
+
+  if (code) {
+    return code;
+  }
+
+  if (message) {
+    return message;
+  }
+
+  return null;
+}
+
+function isUnknownColumnError(error: unknown) {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+
+  const code = (error as DatabaseErrorLike).code;
+  return code === 'ER_BAD_FIELD_ERROR';
+}
+
+function mutationUnavailableErrorMessage(databaseErrorSummary?: string | null) {
+  const baseMessage = HAS_DATABASE_CONFIG
     ? 'Failed to persist project data. Database and file fallback are unavailable.'
     : 'Project write is unavailable in this deployment. Set DATABASE_URL or DB_HOST/DB_USER/DB_PASSWORD/DB_NAME in your deployment environment.';
+
+  if (HAS_DATABASE_CONFIG && databaseErrorSummary) {
+    return `${baseMessage} (${databaseErrorSummary})`;
+  }
+
+  return baseMessage;
 }
 
 function normalizeTags(value: unknown): string[] {
@@ -202,10 +252,12 @@ export async function POST(request: Request) {
     );
   }
 
-  if (HAS_DATABASE_CONFIG) {
-    try {
-      const pool = getPool();
+  let dbWriteErrorSummary: string | null = null;
 
+  if (HAS_DATABASE_CONFIG) {
+    const pool = getPool();
+
+    try {
       const [result] = await pool.execute(
         'INSERT INTO projects (title, cat, `desc`, tags, img, link, show_on_home, home_selection_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [
@@ -227,7 +279,34 @@ export async function POST(request: Request) {
         project: { ...project, id: insertedId },
       });
     } catch (error) {
+      dbWriteErrorSummary = getDatabaseErrorSummary(error);
       console.error('[api/projects][POST] Database write failed.', error);
+
+      if (isUnknownColumnError(error)) {
+        try {
+          const [legacyResult] = await pool.execute(
+            'INSERT INTO projects (title, cat, `desc`, tags, img, link) VALUES (?, ?, ?, ?, ?, ?)',
+            [
+              project.title,
+              project.cat,
+              project.desc,
+              JSON.stringify(project.tags),
+              project.img,
+              project.link || null,
+            ]
+          );
+
+          const insertedId = (legacyResult as any).insertId;
+
+          return NextResponse.json({
+            success: true,
+            project: { ...project, id: insertedId, showOnHome: false, homeSelectionOrder: null },
+          });
+        } catch (legacyError) {
+          dbWriteErrorSummary = getDatabaseErrorSummary(legacyError) || dbWriteErrorSummary;
+          console.error('[api/projects][POST] Legacy database write failed.', legacyError);
+        }
+      }
     }
   }
 
@@ -242,7 +321,7 @@ export async function POST(request: Request) {
   } catch (error) {
     if (isReadOnlyFileWriteError(error)) {
       return NextResponse.json(
-        { success: false, error: mutationUnavailableErrorMessage() },
+        { success: false, error: mutationUnavailableErrorMessage(dbWriteErrorSummary) },
         { status: 503 }
       );
     }
@@ -276,10 +355,12 @@ export async function PUT(request: Request) {
     );
   }
 
-  if (HAS_DATABASE_CONFIG) {
-    try {
-      const pool = getPool();
+  let dbWriteErrorSummary: string | null = null;
 
+  if (HAS_DATABASE_CONFIG) {
+    const pool = getPool();
+
+    try {
       await pool.execute(
         'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ?, show_on_home = ?, home_selection_order = ? WHERE id = ?',
         [
@@ -297,7 +378,30 @@ export async function PUT(request: Request) {
 
       return NextResponse.json({ success: true, project });
     } catch (error) {
+      dbWriteErrorSummary = getDatabaseErrorSummary(error);
       console.error('[api/projects][PUT] Database write failed.', error);
+
+      if (isUnknownColumnError(error)) {
+        try {
+          await pool.execute(
+            'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ? WHERE id = ?',
+            [
+              project.title,
+              project.cat,
+              project.desc,
+              JSON.stringify(project.tags),
+              project.img,
+              project.link || null,
+              project.id,
+            ]
+          );
+
+          return NextResponse.json({ success: true, project });
+        } catch (legacyError) {
+          dbWriteErrorSummary = getDatabaseErrorSummary(legacyError) || dbWriteErrorSummary;
+          console.error('[api/projects][PUT] Legacy database write failed.', legacyError);
+        }
+      }
     }
   }
 
@@ -311,7 +415,7 @@ export async function PUT(request: Request) {
   } catch (error) {
     if (isReadOnlyFileWriteError(error)) {
       return NextResponse.json(
-        { success: false, error: mutationUnavailableErrorMessage() },
+        { success: false, error: mutationUnavailableErrorMessage(dbWriteErrorSummary) },
         { status: 503 }
       );
     }
@@ -345,6 +449,8 @@ export async function DELETE(request: Request) {
     );
   }
 
+  let dbWriteErrorSummary: string | null = null;
+
   if (HAS_DATABASE_CONFIG) {
     try {
       const pool = getPool();
@@ -353,6 +459,7 @@ export async function DELETE(request: Request) {
 
       return NextResponse.json({ success: true });
     } catch (error) {
+      dbWriteErrorSummary = getDatabaseErrorSummary(error);
       console.error('[api/projects][DELETE] Database write failed.', error);
     }
   }
@@ -367,7 +474,7 @@ export async function DELETE(request: Request) {
   } catch (error) {
     if (isReadOnlyFileWriteError(error)) {
       return NextResponse.json(
-        { success: false, error: mutationUnavailableErrorMessage() },
+        { success: false, error: mutationUnavailableErrorMessage(dbWriteErrorSummary) },
         { status: 503 }
       );
     }
