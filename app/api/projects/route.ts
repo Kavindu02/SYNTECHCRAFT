@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getPool } from '@/lib/mysql';
+import { getPool, hasDatabaseConfig } from '@/lib/mysql';
 import projectsData from '@/data/projects.json';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -39,7 +39,8 @@ type ProjectWithId = ProjectPayload & { id: number };
 const projectsFilePath = path.join(process.cwd(), 'data', 'projects.json');
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
 const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
-const HAS_DATABASE_URL = typeof process.env.DATABASE_URL === 'string' && process.env.DATABASE_URL.trim().length > 0;
+const HAS_DATABASE_CONFIG = hasDatabaseConfig();
+const PROJECTS_DATA_SEED: unknown[] = Array.isArray(projectsData) ? projectsData : [];
 
 function isReadOnlyFileWriteError(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -51,9 +52,9 @@ function isReadOnlyFileWriteError(error: unknown) {
 }
 
 function mutationUnavailableErrorMessage() {
-  return HAS_DATABASE_URL
+  return HAS_DATABASE_CONFIG
     ? 'Failed to persist project data. Database and file fallback are unavailable.'
-    : 'Project write is unavailable in this deployment. Set DATABASE_URL in deployment environment.';
+    : 'Project write is unavailable in this deployment. Set DATABASE_URL or DB_HOST/DB_USER/DB_PASSWORD/DB_NAME in your deployment environment.';
 }
 
 function normalizeTags(value: unknown): string[] {
@@ -84,7 +85,7 @@ function isAdmin(request: Request) {
 function asProjectWithIds(items: unknown[]): ProjectWithId[] {
   return items.map((item, index) => {
     const candidate = item as Partial<ProjectWithId>;
-    const fallback = projectsData[index] as unknown as ProjectPayload | undefined;
+    const fallback = PROJECTS_DATA_SEED[index] as ProjectPayload | undefined;
 
     return {
       id:
@@ -117,12 +118,12 @@ async function readProjectsFromFile(): Promise<ProjectWithId[]> {
     const parsed = JSON.parse(raw);
 
     if (!Array.isArray(parsed)) {
-      return asProjectWithIds(projectsData as unknown[]);
+      return asProjectWithIds(PROJECTS_DATA_SEED);
     }
 
     return asProjectWithIds(parsed);
   } catch {
-    return asProjectWithIds(projectsData as unknown[]);
+    return asProjectWithIds(PROJECTS_DATA_SEED);
   }
 }
 
@@ -131,7 +132,7 @@ async function writeProjectsToFile(projects: ProjectWithId[]) {
 }
 
 export async function GET() {
-  if (HAS_DATABASE_URL) {
+  if (HAS_DATABASE_CONFIG) {
     try {
       const pool = getPool();
       const [rows] = await pool.query({
@@ -201,7 +202,7 @@ export async function POST(request: Request) {
     );
   }
 
-  if (HAS_DATABASE_URL) {
+  if (HAS_DATABASE_CONFIG) {
     try {
       const pool = getPool();
 
@@ -275,7 +276,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  if (HAS_DATABASE_URL) {
+  if (HAS_DATABASE_CONFIG) {
     try {
       const pool = getPool();
 
@@ -344,7 +345,7 @@ export async function DELETE(request: Request) {
     );
   }
 
-  if (HAS_DATABASE_URL) {
+  if (HAS_DATABASE_CONFIG) {
     try {
       const pool = getPool();
 
