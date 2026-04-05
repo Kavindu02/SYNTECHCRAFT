@@ -115,7 +115,7 @@ export default function ProjectsPage() {
             >
               <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">
                 <Image
-                  src={proj.img || "/images/projects/default.png"}
+                  src={proj.img || "/logo.png"}
                   alt={proj.title}
                   fill
                   className="object-cover transition-transform duration-1000 group-hover:scale-110"

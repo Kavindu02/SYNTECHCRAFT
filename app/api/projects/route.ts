@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getPool, hasDatabaseConfig, getDatabaseConfigDiagnostics } from '@/lib/mysql';
+import { getMongoDb, getMongoConfigDiagnostics, getProjectsCollectionName, hasMongoConfig } from '@/lib/mongodb';
+import fallbackProjectsSource from '@/data/projects.json';
 
 const projectSchema = z.object({
   title: z.string().min(1),
@@ -34,71 +35,49 @@ type ProjectPayload = {
 
 type ProjectWithId = ProjectPayload & { id: number };
 
-type DatabaseProjectRow = {
+type ProjectDocument = {
   id: number;
   title: string;
   cat: string;
   desc: string;
-  tags: unknown;
+  tags: string[];
   img: string;
-  link: string | null;
-  show_on_home?: number | boolean | null;
-  showOnHome?: number | boolean | null;
-  home_selection_order?: number | null;
-  homeSelectionOrder?: number | null;
+  link: string;
+  showOnHome: boolean;
+  homeSelectionOrder: number | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
-type DatabaseErrorLike = {
-  code?: unknown;
-  message?: unknown;
-  sqlMessage?: unknown;
+type CounterDocument = {
+  _id: string;
+  seq: number;
 };
 
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
-const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
-const HAS_DATABASE_CONFIG = hasDatabaseConfig();
-const DATABASE_CONFIG_DIAGNOSTICS = getDatabaseConfigDiagnostics();
 
 function getDatabaseErrorSummary(error: unknown) {
   if (!error || typeof error !== 'object') {
     return null;
   }
 
-  const dbError = error as DatabaseErrorLike;
-  const code = typeof dbError.code === 'string' ? dbError.code : '';
-  const message =
-    typeof dbError.sqlMessage === 'string'
-      ? dbError.sqlMessage
-      : typeof dbError.message === 'string'
-        ? dbError.message
-        : '';
+  const candidate = error as { message?: unknown; code?: unknown; name?: unknown };
+  const code = typeof candidate.code === 'string' ? candidate.code : '';
+  const name = typeof candidate.name === 'string' ? candidate.name : '';
+  const message = typeof candidate.message === 'string' ? candidate.message : '';
 
-  if (code && message) {
-    return `${code}: ${message}`;
+  const prefix = code || name;
+  if (prefix && message) {
+    return `${prefix}: ${message}`;
   }
 
-  if (code) {
-    return code;
-  }
-
-  if (message) {
-    return message;
-  }
-
-  return null;
-}
-
-function isUnknownColumnError(error: unknown) {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
-
-  const code = (error as DatabaseErrorLike).code;
-  return code === 'ER_BAD_FIELD_ERROR';
+  return prefix || message || null;
 }
 
 function databaseUnavailableErrorMessage() {
-  return `Project API requires MySQL configuration. Set DATABASE_URL or DB_HOST/DB_USER/DB_PASSWORD/DB_NAME. Detected env -> URL:${DATABASE_CONFIG_DIAGNOSTICS.hasUrl}, HOST:${DATABASE_CONFIG_DIAGNOSTICS.hasHost}, USER:${DATABASE_CONFIG_DIAGNOSTICS.hasUser}, PASSWORD:${DATABASE_CONFIG_DIAGNOSTICS.hasPassword}, DB:${DATABASE_CONFIG_DIAGNOSTICS.hasDatabase}.`;
+  const diagnostics = getMongoConfigDiagnostics();
+
+  return `Project API requires MongoDB configuration. Set MONGODB_URI (or compatible key). Detected env -> URI:${diagnostics.hasUri}, DB_NAME:${diagnostics.hasDatabaseName}.`;
 }
 
 function normalizeTags(value: unknown): string[] {
@@ -121,59 +100,130 @@ function normalizeTags(value: unknown): string[] {
   return [];
 }
 
+function normalizeProjectForResponse(project: Partial<ProjectDocument>, fallbackId: number): ProjectWithId {
+  const normalizedId =
+    typeof project.id === 'number' && Number.isInteger(project.id) && project.id > 0
+      ? project.id
+      : fallbackId;
+
+  return {
+    id: normalizedId,
+    title: typeof project.title === 'string' ? project.title : '',
+    cat: typeof project.cat === 'string' ? project.cat : '',
+    desc: typeof project.desc === 'string' ? project.desc : '',
+    tags: normalizeTags(project.tags),
+    img: typeof project.img === 'string' ? project.img : '',
+    link: typeof project.link === 'string' ? project.link : '',
+    showOnHome: Boolean(project.showOnHome),
+    homeSelectionOrder:
+      typeof project.homeSelectionOrder === 'number' &&
+      Number.isInteger(project.homeSelectionOrder) &&
+      project.homeSelectionOrder >= 1
+        ? project.homeSelectionOrder
+        : null,
+  };
+}
+
+function getFallbackProjects(): ProjectWithId[] {
+  if (!Array.isArray(fallbackProjectsSource)) {
+    return [];
+  }
+
+  return fallbackProjectsSource.map((project, index) => {
+    const candidate = project as Partial<ProjectDocument>;
+    const fallbackOrder = index + 1;
+
+    return normalizeProjectForResponse(
+      {
+        ...candidate,
+        id:
+          typeof candidate.id === 'number' && Number.isInteger(candidate.id) && candidate.id > 0
+            ? candidate.id
+            : fallbackOrder,
+        showOnHome: typeof candidate.showOnHome === 'boolean' ? candidate.showOnHome : true,
+        homeSelectionOrder:
+          typeof candidate.homeSelectionOrder === 'number' &&
+          Number.isInteger(candidate.homeSelectionOrder) &&
+          candidate.homeSelectionOrder > 0
+            ? candidate.homeSelectionOrder
+            : fallbackOrder,
+      },
+      fallbackOrder
+    );
+  });
+}
+
+function createProjectsResponse(projects: ProjectWithId[], source: string) {
+  return NextResponse.json(projects, {
+    headers: {
+      'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
+      'X-Projects-Source': source,
+    },
+  });
+}
+
 function isAdmin(request: Request) {
   const cookieHeader = request.headers.get('cookie') || '';
   return cookieHeader.split(';').some((cookie) => cookie.trim() === 'admin_session=true');
 }
 
-function mapDatabaseProject(row: DatabaseProjectRow, fallbackHomeFields = false): ProjectWithId {
-  const rawShowOnHome = row.show_on_home ?? row.showOnHome;
-
-  return {
-    id: row.id,
-    title: row.title,
-    cat: row.cat,
-    desc: row.desc,
-    tags: normalizeTags(row.tags),
-    img: row.img,
-    link: row.link ?? '',
-    showOnHome: fallbackHomeFields ? false : rawShowOnHome === true || rawShowOnHome === 1,
-    homeSelectionOrder: fallbackHomeFields
-      ? null
-      : typeof row.home_selection_order === 'number'
-        ? row.home_selection_order
-        : typeof row.homeSelectionOrder === 'number'
-          ? row.homeSelectionOrder
-          : null,
-  };
+async function getProjectsCollection() {
+  const db = await getMongoDb();
+  return db.collection<ProjectDocument>(getProjectsCollectionName());
 }
 
-async function readProjectsFromDatabase(): Promise<ProjectWithId[]> {
-  const pool = getPool();
+async function getNextProjectId() {
+  const db = await getMongoDb();
+  const counters = db.collection<CounterDocument>('counters');
 
-  try {
-    const [rows] = await pool.query({
-      sql: 'SELECT id, title, cat, `desc`, tags, img, link, show_on_home, home_selection_order FROM projects ORDER BY id DESC',
-      timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
-    });
-
-    return (rows as DatabaseProjectRow[]).map((project) => mapDatabaseProject(project));
-  } catch (error) {
-    if (!isUnknownColumnError(error)) {
-      throw error;
+  const counter = await counters.findOneAndUpdate(
+    { _id: 'projects' },
+    { $inc: { seq: 1 } },
+    {
+      upsert: true,
+      returnDocument: 'after',
+      includeResultMetadata: false,
     }
+  );
 
-    const [legacyRows] = await pool.query({
-      sql: 'SELECT id, title, cat, `desc`, tags, img, link FROM projects ORDER BY id DESC',
-      timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
-    });
-
-    return (legacyRows as DatabaseProjectRow[]).map((project) => mapDatabaseProject(project, true));
+  if (!counter || typeof counter.seq !== 'number') {
+    throw new Error('Failed to generate project id.');
   }
+
+  return counter.seq;
+}
+
+async function hasSelectionOrderConflict(
+  homeSelectionOrder: number | null,
+  excludedProjectId?: number
+) {
+  if (homeSelectionOrder === null) {
+    return false;
+  }
+
+  const projects = await getProjectsCollection();
+
+  const query: Record<string, unknown> = {
+    showOnHome: true,
+    homeSelectionOrder,
+  };
+
+  if (typeof excludedProjectId === 'number') {
+    query.id = { $ne: excludedProjectId };
+  }
+
+  const conflict = await projects.findOne(query);
+  return Boolean(conflict);
 }
 
 export async function GET() {
-  if (!HAS_DATABASE_CONFIG) {
+  const fallbackProjects = getFallbackProjects();
+
+  if (!hasMongoConfig()) {
+    if (fallbackProjects.length > 0) {
+      return createProjectsResponse(fallbackProjects, 'fallback-no-db-config');
+    }
+
     return NextResponse.json(
       { success: false, error: databaseUnavailableErrorMessage() },
       { status: 503 }
@@ -181,16 +231,25 @@ export async function GET() {
   }
 
   try {
-    const projects = await readProjectsFromDatabase();
+    const projects = await getProjectsCollection();
+    const rows = await projects.find().sort({ id: -1 }).toArray();
 
-    return NextResponse.json(projects, {
-      headers: {
-        'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
-      },
-    });
+    const response = rows.map((project: ProjectDocument, index: number) =>
+      normalizeProjectForResponse(project, index + 1)
+    );
+
+    if (response.length === 0 && fallbackProjects.length > 0) {
+      return createProjectsResponse(fallbackProjects, 'fallback-empty-db');
+    }
+
+    return createProjectsResponse(response, 'database');
   } catch (error) {
     console.error('[api/projects][GET] Database read failed.', error);
     const summary = getDatabaseErrorSummary(error);
+
+    if (fallbackProjects.length > 0) {
+      return createProjectsResponse(fallbackProjects, 'fallback-db-error');
+    }
 
     return NextResponse.json(
       {
@@ -207,7 +266,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!HAS_DATABASE_CONFIG) {
+  if (!hasMongoConfig()) {
     return NextResponse.json(
       { success: false, error: databaseUnavailableErrorMessage() },
       { status: 503 }
@@ -230,64 +289,47 @@ export async function POST(request: Request) {
     );
   }
 
-  const pool = getPool();
+  const normalizedProject: ProjectPayload = {
+    ...project,
+    link: project.link || '',
+    showOnHome: Boolean(project.showOnHome),
+    homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
+  };
+
+  if (
+    normalizedProject.showOnHome &&
+    (await hasSelectionOrderConflict(normalizedProject.homeSelectionOrder ?? null))
+  ) {
+    return NextResponse.json(
+      { success: false, error: 'This home selection order is already in use.' },
+      { status: 409 }
+    );
+  }
 
   try {
-    const [result] = await pool.execute(
-      'INSERT INTO projects (title, cat, `desc`, tags, img, link, show_on_home, home_selection_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        project.title,
-        project.cat,
-        project.desc,
-        JSON.stringify(project.tags),
-        project.img,
-        project.link || null,
-        project.showOnHome ? 1 : 0,
-        project.showOnHome ? project.homeSelectionOrder ?? null : null,
-      ]
-    );
+    const id = await getNextProjectId();
+    const now = new Date();
+    const projects = await getProjectsCollection();
 
-    const insertedId = (result as { insertId: number }).insertId;
+    await projects.insertOne({
+      id,
+      title: normalizedProject.title,
+      cat: normalizedProject.cat,
+      desc: normalizedProject.desc,
+      tags: normalizedProject.tags,
+      img: normalizedProject.img,
+      link: normalizedProject.link || '',
+      showOnHome: Boolean(normalizedProject.showOnHome),
+      homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
+      createdAt: now,
+      updatedAt: now,
+    });
 
     return NextResponse.json({
       success: true,
-      project: { ...project, id: insertedId },
+      project: { ...normalizedProject, id },
     });
   } catch (error) {
-    if (isUnknownColumnError(error)) {
-      try {
-        const [legacyResult] = await pool.execute(
-          'INSERT INTO projects (title, cat, `desc`, tags, img, link) VALUES (?, ?, ?, ?, ?, ?)',
-          [
-            project.title,
-            project.cat,
-            project.desc,
-            JSON.stringify(project.tags),
-            project.img,
-            project.link || null,
-          ]
-        );
-
-        const insertedId = (legacyResult as { insertId: number }).insertId;
-
-        return NextResponse.json({
-          success: true,
-          project: { ...project, id: insertedId, showOnHome: false, homeSelectionOrder: null },
-        });
-      } catch (legacyError) {
-        console.error('[api/projects][POST] Legacy database write failed.', legacyError);
-        const summary = getDatabaseErrorSummary(legacyError) || getDatabaseErrorSummary(error);
-
-        return NextResponse.json(
-          {
-            success: false,
-            error: summary ? `Failed to save project. ${summary}` : 'Failed to save project.',
-          },
-          { status: 500 }
-        );
-      }
-    }
-
     console.error('[api/projects][POST] Database write failed.', error);
     const summary = getDatabaseErrorSummary(error);
 
@@ -306,7 +348,7 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!HAS_DATABASE_CONFIG) {
+  if (!hasMongoConfig()) {
     return NextResponse.json(
       { success: false, error: databaseUnavailableErrorMessage() },
       { status: 503 }
@@ -329,56 +371,52 @@ export async function PUT(request: Request) {
     );
   }
 
-  const pool = getPool();
+  const normalizedProject: ProjectWithId = {
+    ...project,
+    link: project.link || '',
+    showOnHome: Boolean(project.showOnHome),
+    homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
+  };
+
+  if (
+    normalizedProject.showOnHome &&
+    (await hasSelectionOrderConflict(normalizedProject.homeSelectionOrder ?? null, normalizedProject.id))
+  ) {
+    return NextResponse.json(
+      { success: false, error: 'This home selection order is already in use.' },
+      { status: 409 }
+    );
+  }
 
   try {
-    await pool.execute(
-      'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ?, show_on_home = ?, home_selection_order = ? WHERE id = ?',
-      [
-        project.title,
-        project.cat,
-        project.desc,
-        JSON.stringify(project.tags),
-        project.img,
-        project.link || null,
-        project.showOnHome ? 1 : 0,
-        project.showOnHome ? project.homeSelectionOrder ?? null : null,
-        project.id,
-      ]
+    const projects = await getProjectsCollection();
+
+    const result = await projects.updateOne(
+      { id: normalizedProject.id },
+      {
+        $set: {
+          title: normalizedProject.title,
+          cat: normalizedProject.cat,
+          desc: normalizedProject.desc,
+          tags: normalizedProject.tags,
+          img: normalizedProject.img,
+          link: normalizedProject.link || '',
+          showOnHome: Boolean(normalizedProject.showOnHome),
+          homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
+          updatedAt: new Date(),
+        },
+      }
     );
 
-    return NextResponse.json({ success: true, project });
-  } catch (error) {
-    if (isUnknownColumnError(error)) {
-      try {
-        await pool.execute(
-          'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ? WHERE id = ?',
-          [
-            project.title,
-            project.cat,
-            project.desc,
-            JSON.stringify(project.tags),
-            project.img,
-            project.link || null,
-            project.id,
-          ]
-        );
-
-        return NextResponse.json({ success: true, project });
-      } catch (legacyError) {
-        console.error('[api/projects][PUT] Legacy database write failed.', legacyError);
-        const summary = getDatabaseErrorSummary(legacyError) || getDatabaseErrorSummary(error);
-
-        return NextResponse.json(
-          {
-            success: false,
-            error: summary ? `Failed to update project. ${summary}` : 'Failed to update project.',
-          },
-          { status: 500 }
-        );
-      }
+    if (result.matchedCount === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Project not found.' },
+        { status: 404 }
+      );
     }
 
+    return NextResponse.json({ success: true, project: normalizedProject });
+  } catch (error) {
     console.error('[api/projects][PUT] Database write failed.', error);
     const summary = getDatabaseErrorSummary(error);
 
@@ -397,7 +435,7 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!HAS_DATABASE_CONFIG) {
+  if (!hasMongoConfig()) {
     return NextResponse.json(
       { success: false, error: databaseUnavailableErrorMessage() },
       { status: 503 }
@@ -421,8 +459,15 @@ export async function DELETE(request: Request) {
   }
 
   try {
-    const pool = getPool();
-    await pool.execute('DELETE FROM projects WHERE id = ?', [id]);
+    const projects = await getProjectsCollection();
+    const result = await projects.deleteOne({ id });
+
+    if (result.deletedCount === 0) {
+      return NextResponse.json(
+        { success: false, error: 'Project not found.' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {
