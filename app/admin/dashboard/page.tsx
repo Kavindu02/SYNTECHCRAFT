@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { LogOut, LayoutDashboard, FolderKanban } from 'lucide-react'
-import projectsData from '@/data/projects.json'
 
 interface Project {
   id?: number;
@@ -44,7 +43,7 @@ function asProjectsArray(value: unknown): Project[] {
 }
 
 export default function AdminDashboard() {
-  const [projects, setProjects] = useState<Project[]>(() => asProjectsArray(projectsData as unknown[]))
+  const [projects, setProjects] = useState<Project[]>([])
   const [selectionInputs, setSelectionInputs] = useState<Record<number, string>>({})
   const router = useRouter()
 

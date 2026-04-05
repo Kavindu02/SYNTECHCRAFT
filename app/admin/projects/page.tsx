@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X } from 'lucide-react'
-import projectsData from '@/data/projects.json'
 
 interface Project {
   id?: number;
@@ -45,7 +44,7 @@ function asProjectsArray(value: unknown): Project[] {
 }
 
 export default function AdminProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(() => asProjectsArray(projectsData as unknown[]))
+  const [projects, setProjects] = useState<Project[]>([])
   const [showAddForm, setShowAddForm] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [newProject, setNewProject] = useState<Project>({

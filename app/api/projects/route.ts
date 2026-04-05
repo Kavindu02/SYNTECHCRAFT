@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { getPool, hasDatabaseConfig, getDatabaseConfigDiagnostics } from '@/lib/mysql';
-import projectsData from '@/data/projects.json';
-import { promises as fs } from 'fs';
-import path from 'path';
 
 const projectSchema = z.object({
   title: z.string().min(1),
@@ -34,14 +31,22 @@ type ProjectPayload = {
   showOnHome?: boolean;
   homeSelectionOrder?: number | null;
 };
+
 type ProjectWithId = ProjectPayload & { id: number };
 
-const projectsFilePath = path.join(process.cwd(), 'data', 'projects.json');
-const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
-const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
-const HAS_DATABASE_CONFIG = hasDatabaseConfig();
-const DATABASE_CONFIG_DIAGNOSTICS = getDatabaseConfigDiagnostics();
-const PROJECTS_DATA_SEED: unknown[] = Array.isArray(projectsData) ? projectsData : [];
+type DatabaseProjectRow = {
+  id: number;
+  title: string;
+  cat: string;
+  desc: string;
+  tags: unknown;
+  img: string;
+  link: string | null;
+  show_on_home?: number | boolean | null;
+  showOnHome?: number | boolean | null;
+  home_selection_order?: number | null;
+  homeSelectionOrder?: number | null;
+};
 
 type DatabaseErrorLike = {
   code?: unknown;
@@ -49,14 +54,10 @@ type DatabaseErrorLike = {
   sqlMessage?: unknown;
 };
 
-function isReadOnlyFileWriteError(error: unknown) {
-  if (!error || typeof error !== 'object') {
-    return false;
-  }
-
-  const code = (error as { code?: unknown }).code;
-  return code === 'EROFS' || code === 'EACCES' || code === 'EPERM';
-}
+const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
+const DB_PROJECTS_QUERY_TIMEOUT_MS = Number(process.env.DB_PROJECTS_QUERY_TIMEOUT_MS || 2000);
+const HAS_DATABASE_CONFIG = hasDatabaseConfig();
+const DATABASE_CONFIG_DIAGNOSTICS = getDatabaseConfigDiagnostics();
 
 function getDatabaseErrorSummary(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -96,22 +97,8 @@ function isUnknownColumnError(error: unknown) {
   return code === 'ER_BAD_FIELD_ERROR';
 }
 
-function mutationUnavailableErrorMessage(databaseErrorSummary?: string | null) {
-  const baseMessage = HAS_DATABASE_CONFIG
-    ? 'Failed to persist project data. Database and file fallback are unavailable.'
-    : 'Project write is unavailable in this deployment. Set DATABASE_URL or DB_HOST/DB_USER/DB_PASSWORD/DB_NAME in your deployment environment.';
-
-  const diagnosticsMessage = `Detected env -> URL:${DATABASE_CONFIG_DIAGNOSTICS.hasUrl}, HOST:${DATABASE_CONFIG_DIAGNOSTICS.hasHost}, USER:${DATABASE_CONFIG_DIAGNOSTICS.hasUser}, PASSWORD:${DATABASE_CONFIG_DIAGNOSTICS.hasPassword}, DB:${DATABASE_CONFIG_DIAGNOSTICS.hasDatabase}.`;
-
-  if (HAS_DATABASE_CONFIG && databaseErrorSummary) {
-    return `${baseMessage} (${databaseErrorSummary}) ${diagnosticsMessage}`;
-  }
-
-  if (!HAS_DATABASE_CONFIG) {
-    return `${baseMessage} ${diagnosticsMessage}`;
-  }
-
-  return baseMessage;
+function databaseUnavailableErrorMessage() {
+  return `Project API requires MySQL configuration. Set DATABASE_URL or DB_HOST/DB_USER/DB_PASSWORD/DB_NAME. Detected env -> URL:${DATABASE_CONFIG_DIAGNOSTICS.hasUrl}, HOST:${DATABASE_CONFIG_DIAGNOSTICS.hasHost}, USER:${DATABASE_CONFIG_DIAGNOSTICS.hasUser}, PASSWORD:${DATABASE_CONFIG_DIAGNOSTICS.hasPassword}, DB:${DATABASE_CONFIG_DIAGNOSTICS.hasDatabase}.`;
 }
 
 function normalizeTags(value: unknown): string[] {
@@ -139,102 +126,80 @@ function isAdmin(request: Request) {
   return cookieHeader.split(';').some((cookie) => cookie.trim() === 'admin_session=true');
 }
 
-function asProjectWithIds(items: unknown[]): ProjectWithId[] {
-  return items.map((item, index) => {
-    const candidate = item as Partial<ProjectWithId>;
-    const fallback = PROJECTS_DATA_SEED[index] as ProjectPayload | undefined;
+function mapDatabaseProject(row: DatabaseProjectRow, fallbackHomeFields = false): ProjectWithId {
+  const rawShowOnHome = row.show_on_home ?? row.showOnHome;
 
-    return {
-      id:
-        typeof candidate.id === 'number' && Number.isInteger(candidate.id) && candidate.id > 0
-          ? candidate.id
-          : index + 1,
-      title: typeof candidate.title === 'string' ? candidate.title : fallback?.title || '',
-      cat: typeof candidate.cat === 'string' ? candidate.cat : fallback?.cat || '',
-      desc: typeof candidate.desc === 'string' ? candidate.desc : fallback?.desc || '',
-      tags: normalizeTags(candidate.tags),
-      img: typeof candidate.img === 'string' ? candidate.img : fallback?.img || '',
-      link: typeof candidate.link === 'string' ? candidate.link : fallback?.link || '',
-      showOnHome:
-        typeof candidate.showOnHome === 'boolean'
-          ? candidate.showOnHome
-          : Boolean(fallback?.showOnHome),
-      homeSelectionOrder:
-        typeof candidate.homeSelectionOrder === 'number' &&
-        Number.isInteger(candidate.homeSelectionOrder) &&
-        candidate.homeSelectionOrder >= 1
-          ? candidate.homeSelectionOrder
+  return {
+    id: row.id,
+    title: row.title,
+    cat: row.cat,
+    desc: row.desc,
+    tags: normalizeTags(row.tags),
+    img: row.img,
+    link: row.link ?? '',
+    showOnHome: fallbackHomeFields ? false : rawShowOnHome === true || rawShowOnHome === 1,
+    homeSelectionOrder: fallbackHomeFields
+      ? null
+      : typeof row.home_selection_order === 'number'
+        ? row.home_selection_order
+        : typeof row.homeSelectionOrder === 'number'
+          ? row.homeSelectionOrder
           : null,
-    };
-  });
+  };
 }
 
-async function readProjectsFromFile(): Promise<ProjectWithId[]> {
-  try {
-    const raw = await fs.readFile(projectsFilePath, 'utf-8');
-    const parsed = JSON.parse(raw);
+async function readProjectsFromDatabase(): Promise<ProjectWithId[]> {
+  const pool = getPool();
 
-    if (!Array.isArray(parsed)) {
-      return asProjectWithIds(PROJECTS_DATA_SEED);
+  try {
+    const [rows] = await pool.query({
+      sql: 'SELECT id, title, cat, `desc`, tags, img, link, show_on_home, home_selection_order FROM projects ORDER BY id DESC',
+      timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
+    });
+
+    return (rows as DatabaseProjectRow[]).map((project) => mapDatabaseProject(project));
+  } catch (error) {
+    if (!isUnknownColumnError(error)) {
+      throw error;
     }
 
-    return asProjectWithIds(parsed);
-  } catch {
-    return asProjectWithIds(PROJECTS_DATA_SEED);
-  }
-}
+    const [legacyRows] = await pool.query({
+      sql: 'SELECT id, title, cat, `desc`, tags, img, link FROM projects ORDER BY id DESC',
+      timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
+    });
 
-async function writeProjectsToFile(projects: ProjectWithId[]) {
-  await fs.writeFile(projectsFilePath, `${JSON.stringify(projects, null, 2)}\n`, 'utf-8');
+    return (legacyRows as DatabaseProjectRow[]).map((project) => mapDatabaseProject(project, true));
+  }
 }
 
 export async function GET() {
-  if (HAS_DATABASE_CONFIG) {
-    try {
-      const pool = getPool();
-      const [rows] = await pool.query({
-        sql: 'SELECT * FROM projects ORDER BY id DESC',
-        timeout: DB_PROJECTS_QUERY_TIMEOUT_MS,
-      });
-
-      const dbProjects = (rows as any[]).map((project) => {
-        const rawShowOnHome = project.show_on_home ?? project.showOnHome;
-        return {
-          id: project.id,
-          title: project.title,
-          cat: project.cat,
-          desc: project.desc,
-          tags: normalizeTags(project.tags),
-          img: project.img,
-          link: project.link ?? '',
-          showOnHome: rawShowOnHome === true || rawShowOnHome === 1,
-          homeSelectionOrder:
-            typeof project.home_selection_order === 'number'
-              ? project.home_selection_order
-              : typeof project.homeSelectionOrder === 'number'
-                ? project.homeSelectionOrder
-                : null,
-        };
-      });
-
-      if (dbProjects.length > 0) {
-        return NextResponse.json(dbProjects, {
-          headers: {
-            'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
-          },
-        });
-      }
-    } catch (error) {
-      console.error('[api/projects][GET] Database read failed. Falling back to file.', error);
-    }
+  if (!HAS_DATABASE_CONFIG) {
+    return NextResponse.json(
+      { success: false, error: databaseUnavailableErrorMessage() },
+      { status: 503 }
+    );
   }
 
-  const fileProjects = await readProjectsFromFile();
-  return NextResponse.json(fileProjects, {
-    headers: {
-      'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
-    },
-  });
+  try {
+    const projects = await readProjectsFromDatabase();
+
+    return NextResponse.json(projects, {
+      headers: {
+        'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
+      },
+    });
+  } catch (error) {
+    console.error('[api/projects][GET] Database read failed.', error);
+    const summary = getDatabaseErrorSummary(error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: summary ? `Failed to read projects. ${summary}` : 'Failed to read projects.',
+      },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(request: Request) {
@@ -242,11 +207,17 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  if (!HAS_DATABASE_CONFIG) {
+    return NextResponse.json(
+      { success: false, error: databaseUnavailableErrorMessage() },
+      { status: 503 }
+    );
+  }
 
   let project: ProjectPayload;
 
   try {
+    const body = await request.json();
     project = projectSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -259,82 +230,72 @@ export async function POST(request: Request) {
     );
   }
 
-  let dbWriteErrorSummary: string | null = null;
-
-  if (HAS_DATABASE_CONFIG) {
-    const pool = getPool();
-
-    try {
-      const [result] = await pool.execute(
-        'INSERT INTO projects (title, cat, `desc`, tags, img, link, show_on_home, home_selection_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [
-          project.title,
-          project.cat,
-          project.desc,
-          JSON.stringify(project.tags),
-          project.img,
-          project.link || null,
-          project.showOnHome ? 1 : 0,
-          project.showOnHome ? project.homeSelectionOrder ?? null : null,
-        ]
-      );
-
-      const insertedId = (result as any).insertId;
-
-      return NextResponse.json({
-        success: true,
-        project: { ...project, id: insertedId },
-      });
-    } catch (error) {
-      dbWriteErrorSummary = getDatabaseErrorSummary(error);
-      console.error('[api/projects][POST] Database write failed.', error);
-
-      if (isUnknownColumnError(error)) {
-        try {
-          const [legacyResult] = await pool.execute(
-            'INSERT INTO projects (title, cat, `desc`, tags, img, link) VALUES (?, ?, ?, ?, ?, ?)',
-            [
-              project.title,
-              project.cat,
-              project.desc,
-              JSON.stringify(project.tags),
-              project.img,
-              project.link || null,
-            ]
-          );
-
-          const insertedId = (legacyResult as any).insertId;
-
-          return NextResponse.json({
-            success: true,
-            project: { ...project, id: insertedId, showOnHome: false, homeSelectionOrder: null },
-          });
-        } catch (legacyError) {
-          dbWriteErrorSummary = getDatabaseErrorSummary(legacyError) || dbWriteErrorSummary;
-          console.error('[api/projects][POST] Legacy database write failed.', legacyError);
-        }
-      }
-    }
-  }
+  const pool = getPool();
 
   try {
-    const existing = await readProjectsFromFile();
-    const nextId = existing.length > 0 ? Math.max(...existing.map((item) => item.id)) + 1 : 1;
-    const savedProject: ProjectWithId = { ...project, id: nextId };
+    const [result] = await pool.execute(
+      'INSERT INTO projects (title, cat, `desc`, tags, img, link, show_on_home, home_selection_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        project.title,
+        project.cat,
+        project.desc,
+        JSON.stringify(project.tags),
+        project.img,
+        project.link || null,
+        project.showOnHome ? 1 : 0,
+        project.showOnHome ? project.homeSelectionOrder ?? null : null,
+      ]
+    );
 
-    await writeProjectsToFile([savedProject, ...existing]);
+    const insertedId = (result as { insertId: number }).insertId;
 
-    return NextResponse.json({ success: true, project: savedProject });
+    return NextResponse.json({
+      success: true,
+      project: { ...project, id: insertedId },
+    });
   } catch (error) {
-    if (isReadOnlyFileWriteError(error)) {
-      return NextResponse.json(
-        { success: false, error: mutationUnavailableErrorMessage(dbWriteErrorSummary) },
-        { status: 503 }
-      );
+    if (isUnknownColumnError(error)) {
+      try {
+        const [legacyResult] = await pool.execute(
+          'INSERT INTO projects (title, cat, `desc`, tags, img, link) VALUES (?, ?, ?, ?, ?, ?)',
+          [
+            project.title,
+            project.cat,
+            project.desc,
+            JSON.stringify(project.tags),
+            project.img,
+            project.link || null,
+          ]
+        );
+
+        const insertedId = (legacyResult as { insertId: number }).insertId;
+
+        return NextResponse.json({
+          success: true,
+          project: { ...project, id: insertedId, showOnHome: false, homeSelectionOrder: null },
+        });
+      } catch (legacyError) {
+        console.error('[api/projects][POST] Legacy database write failed.', legacyError);
+        const summary = getDatabaseErrorSummary(legacyError) || getDatabaseErrorSummary(error);
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: summary ? `Failed to save project. ${summary}` : 'Failed to save project.',
+          },
+          { status: 500 }
+        );
+      }
     }
 
+    console.error('[api/projects][POST] Database write failed.', error);
+    const summary = getDatabaseErrorSummary(error);
+
     return NextResponse.json(
-      { success: false, error: 'Failed to save project.' },
+      {
+        success: false,
+        error: summary ? `Failed to save project. ${summary}` : 'Failed to save project.',
+      },
       { status: 500 }
     );
   }
@@ -345,11 +306,17 @@ export async function PUT(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  if (!HAS_DATABASE_CONFIG) {
+    return NextResponse.json(
+      { success: false, error: databaseUnavailableErrorMessage() },
+      { status: 503 }
+    );
+  }
 
   let project: ProjectWithId;
 
   try {
+    const body = await request.json();
     project = projectUpdateSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -362,73 +329,64 @@ export async function PUT(request: Request) {
     );
   }
 
-  let dbWriteErrorSummary: string | null = null;
-
-  if (HAS_DATABASE_CONFIG) {
-    const pool = getPool();
-
-    try {
-      await pool.execute(
-        'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ?, show_on_home = ?, home_selection_order = ? WHERE id = ?',
-        [
-          project.title,
-          project.cat,
-          project.desc,
-          JSON.stringify(project.tags),
-          project.img,
-          project.link || null,
-          project.showOnHome ? 1 : 0,
-          project.showOnHome ? project.homeSelectionOrder ?? null : null,
-          project.id,
-        ]
-      );
-
-      return NextResponse.json({ success: true, project });
-    } catch (error) {
-      dbWriteErrorSummary = getDatabaseErrorSummary(error);
-      console.error('[api/projects][PUT] Database write failed.', error);
-
-      if (isUnknownColumnError(error)) {
-        try {
-          await pool.execute(
-            'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ? WHERE id = ?',
-            [
-              project.title,
-              project.cat,
-              project.desc,
-              JSON.stringify(project.tags),
-              project.img,
-              project.link || null,
-              project.id,
-            ]
-          );
-
-          return NextResponse.json({ success: true, project });
-        } catch (legacyError) {
-          dbWriteErrorSummary = getDatabaseErrorSummary(legacyError) || dbWriteErrorSummary;
-          console.error('[api/projects][PUT] Legacy database write failed.', legacyError);
-        }
-      }
-    }
-  }
+  const pool = getPool();
 
   try {
-    const existing = await readProjectsFromFile();
-    const updated = existing.map((item) => (item.id === project.id ? project : item));
-
-    await writeProjectsToFile(updated);
+    await pool.execute(
+      'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ?, show_on_home = ?, home_selection_order = ? WHERE id = ?',
+      [
+        project.title,
+        project.cat,
+        project.desc,
+        JSON.stringify(project.tags),
+        project.img,
+        project.link || null,
+        project.showOnHome ? 1 : 0,
+        project.showOnHome ? project.homeSelectionOrder ?? null : null,
+        project.id,
+      ]
+    );
 
     return NextResponse.json({ success: true, project });
   } catch (error) {
-    if (isReadOnlyFileWriteError(error)) {
-      return NextResponse.json(
-        { success: false, error: mutationUnavailableErrorMessage(dbWriteErrorSummary) },
-        { status: 503 }
-      );
+    if (isUnknownColumnError(error)) {
+      try {
+        await pool.execute(
+          'UPDATE projects SET title = ?, cat = ?, `desc` = ?, tags = ?, img = ?, link = ? WHERE id = ?',
+          [
+            project.title,
+            project.cat,
+            project.desc,
+            JSON.stringify(project.tags),
+            project.img,
+            project.link || null,
+            project.id,
+          ]
+        );
+
+        return NextResponse.json({ success: true, project });
+      } catch (legacyError) {
+        console.error('[api/projects][PUT] Legacy database write failed.', legacyError);
+        const summary = getDatabaseErrorSummary(legacyError) || getDatabaseErrorSummary(error);
+
+        return NextResponse.json(
+          {
+            success: false,
+            error: summary ? `Failed to update project. ${summary}` : 'Failed to update project.',
+          },
+          { status: 500 }
+        );
+      }
     }
 
+    console.error('[api/projects][PUT] Database write failed.', error);
+    const summary = getDatabaseErrorSummary(error);
+
     return NextResponse.json(
-      { success: false, error: 'Failed to update project.' },
+      {
+        success: false,
+        error: summary ? `Failed to update project. ${summary}` : 'Failed to update project.',
+      },
       { status: 500 }
     );
   }
@@ -439,11 +397,17 @@ export async function DELETE(request: Request) {
     return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
   }
 
-  const body = await request.json();
+  if (!HAS_DATABASE_CONFIG) {
+    return NextResponse.json(
+      { success: false, error: databaseUnavailableErrorMessage() },
+      { status: 503 }
+    );
+  }
 
   let id: number;
 
   try {
+    const body = await request.json();
     id = projectDeleteSchema.parse(body).id;
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -456,38 +420,20 @@ export async function DELETE(request: Request) {
     );
   }
 
-  let dbWriteErrorSummary: string | null = null;
-
-  if (HAS_DATABASE_CONFIG) {
-    try {
-      const pool = getPool();
-
-      await pool.execute('DELETE FROM projects WHERE id = ?', [id]);
-
-      return NextResponse.json({ success: true });
-    } catch (error) {
-      dbWriteErrorSummary = getDatabaseErrorSummary(error);
-      console.error('[api/projects][DELETE] Database write failed.', error);
-    }
-  }
-
   try {
-    const existing = await readProjectsFromFile();
-    const filtered = existing.filter((item) => item.id !== id);
-
-    await writeProjectsToFile(filtered);
+    const pool = getPool();
+    await pool.execute('DELETE FROM projects WHERE id = ?', [id]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    if (isReadOnlyFileWriteError(error)) {
-      return NextResponse.json(
-        { success: false, error: mutationUnavailableErrorMessage(dbWriteErrorSummary) },
-        { status: 503 }
-      );
-    }
+    console.error('[api/projects][DELETE] Database write failed.', error);
+    const summary = getDatabaseErrorSummary(error);
 
     return NextResponse.json(
-      { success: false, error: 'Failed to delete project.' },
+      {
+        success: false,
+        error: summary ? `Failed to delete project. ${summary}` : 'Failed to delete project.',
+      },
       { status: 500 }
     );
   }

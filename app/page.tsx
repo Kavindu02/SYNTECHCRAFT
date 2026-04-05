@@ -4,7 +4,6 @@ import Navbar from '@/components/navbar'
 import Hero from '@/components/hero'
 import Image from 'next/image'
 import { ContactForm } from '@/components/contact-form'
-import projectsData from '@/data/projects.json'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
@@ -127,9 +126,7 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 
 export default function Home() {
   // Only show the first 9 projects on the home page
-  const [projectsList, setProjectsList] = useState<Project[]>(() =>
-    getHomeProjects(asProjectsArray(projectsData as unknown[]))
-  )
+  const [projectsList, setProjectsList] = useState<Project[]>([])
 
   useEffect(() => {
     const fetchProjects = async () => {

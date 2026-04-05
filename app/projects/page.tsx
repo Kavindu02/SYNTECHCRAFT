@@ -8,7 +8,6 @@ import { ArrowUpRight } from "lucide-react";
 import "../globals.css";
 import Link from "next/link";
 import { Home } from "lucide-react";
-import projectsData from "@/data/projects.json";
 
 interface Project {
   id?: number;
@@ -64,9 +63,7 @@ function asProjectsArray(value: unknown): Project[] {
 }
 
 export default function ProjectsPage() {
-  const [projects, setProjects] = useState<Project[]>(() =>
-    sortProjects(asProjectsArray(projectsData as unknown[]))
-  );
+  const [projects, setProjects] = useState<Project[]>([]);
 
   useEffect(() => {
     const fetchProjects = async () => {
