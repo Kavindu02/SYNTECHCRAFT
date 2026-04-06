@@ -171,6 +171,7 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isProjectsLoading, setIsProjectsLoading] = useState(true)
   const [isEditPreparing, setIsEditPreparing] = useState(false)
+  const [fileInputResetKey, setFileInputResetKey] = useState(0)
   const [originalEditImage, setOriginalEditImage] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editMode, setEditMode] = useState(false)
@@ -219,15 +220,19 @@ export default function AdminProjectsPage() {
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      try {
-        const optimizedImage = await optimizeImageForStorage(file)
-        setNewProject((current) => ({ ...current, img: optimizedImage }))
-      } catch {
-      }
+
+    if (!file) {
+      setFileInputResetKey((current) => current + 1)
+      return
     }
 
-    e.currentTarget.value = ''
+    try {
+      const optimizedImage = await optimizeImageForStorage(file)
+      setNewProject((current) => ({ ...current, img: optimizedImage }))
+    } catch {
+    } finally {
+      setFileInputResetKey((current) => current + 1)
+    }
   }
 
   const handleAddProject = async (e: React.FormEvent) => {
@@ -484,6 +489,7 @@ export default function AdminProjectsPage() {
                         </div>
                         <div className="flex-grow">
                           <input
+                            key={fileInputResetKey}
                             type="file"
                             onChange={handleFileChange}
                             className="hidden"

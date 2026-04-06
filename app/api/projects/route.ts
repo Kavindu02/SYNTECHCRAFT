@@ -95,6 +95,48 @@ const MIME_TO_EXTENSION: Record<string, string> = {
   'image/avif': 'avif',
 };
 
+function isReadOnlyFileSystemError(error: unknown) {
+  if (error && typeof error === 'object' && 'code' in error) {
+    const code = (error as { code?: unknown }).code;
+    if (code === 'EROFS' || code === 'EPERM' || code === 'EACCES') {
+      return true;
+    }
+  }
+
+  if (error instanceof Error) {
+    return /EROFS|read-only file system/i.test(error.message);
+  }
+
+  if (typeof error === 'string') {
+    return /EROFS|read-only file system/i.test(error);
+  }
+
+  return false;
+}
+
+function shouldPreferInlineImageStorage() {
+  const configuredMode = (process.env.PROJECT_IMAGE_STORAGE_MODE || '').trim().toLowerCase();
+
+  if (configuredMode === 'inline') {
+    return true;
+  }
+
+  if (configuredMode === 'filesystem' || configuredMode === 'fs') {
+    return false;
+  }
+
+  if (process.env.NODE_ENV === 'production') {
+    return true;
+  }
+
+  // Serverless bundles (for example Vercel /var/task) are typically read-only.
+  if (process.env.VERCEL === '1' || process.cwd().startsWith('/var/task')) {
+    return true;
+  }
+
+  return false;
+}
+
 function getDatabaseErrorSummary(error: unknown) {
   if (!error || typeof error !== 'object') {
     return null;
@@ -211,32 +253,53 @@ async function persistProjectImage(value: string) {
     return normalized;
   }
 
+  if (shouldPreferInlineImageStorage()) {
+    return normalized;
+  }
+
   const match = normalized.match(DATA_URL_IMAGE_PATTERN);
   if (!match) {
-    throw new Error('Invalid image data URL.');
+    return DEFAULT_PROJECT_IMAGE_PATH;
   }
 
   const mimeType = match[1].toLowerCase();
   const base64Payload = match[2].replace(/\s+/g, '');
 
   if (!base64Payload) {
-    throw new Error('Image payload is empty.');
+    return DEFAULT_PROJECT_IMAGE_PATH;
   }
 
   const binary = Buffer.from(base64Payload, 'base64');
   if (binary.length === 0) {
-    throw new Error('Image payload is invalid.');
+    return DEFAULT_PROJECT_IMAGE_PATH;
   }
-
-  await mkdir(PROJECT_IMAGE_UPLOADS_DIR, { recursive: true });
 
   const extension = getImageExtensionFromMimeType(mimeType);
   const fileName = `project-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
   const filePath = join(PROJECT_IMAGE_UPLOADS_DIR, fileName);
 
-  await writeFile(filePath, binary);
+  try {
+    await mkdir(PROJECT_IMAGE_UPLOADS_DIR, { recursive: true });
+    await writeFile(filePath, binary);
+    return `${PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX}${fileName}`;
+  } catch (error) {
+    if (isReadOnlyFileSystemError(error)) {
+      // Some serverless environments (e.g. /var/task) are read-only at runtime.
+      // Fall back to inline storage so project saves do not fail.
+      console.warn('[api/projects] Upload directory is read-only. Falling back to inline image storage.');
+      return normalized;
+    }
 
-  return `${PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX}${fileName}`;
+    if (
+      error instanceof Error &&
+      /\/var\/task|read-only file system|EROFS|EPERM|EACCES/i.test(error.message)
+    ) {
+      console.warn('[api/projects] Non-writable runtime detected. Falling back to inline image storage.');
+      return normalized;
+    }
+
+    throw error;
+  }
 }
 
 function normalizeProjectForResponse(
