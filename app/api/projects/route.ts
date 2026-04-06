@@ -1,7 +1,14 @@
+import { mkdir, unlink, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { ObjectId } from 'mongodb';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { getMongoDb, getMongoConfigDiagnostics, getProjectsCollectionName, hasMongoConfig } from '@/lib/mongodb';
-import fallbackProjectsSource from '@/data/projects.json';
+import {
+  getMongoDb,
+  getMongoConfigDiagnostics,
+  getProjectsCollectionName,
+  hasMongoConfig,
+} from '@/lib/mongodb';
 
 const projectSchema = z.object({
   title: z.string().trim().min(1),
@@ -14,28 +21,48 @@ const projectSchema = z.object({
   homeSelectionOrder: z.number().int().min(1).nullable().optional(),
 });
 
-const projectUpdateSchema = projectSchema.extend({
-  id: z.number().int().positive(),
+const projectIdentitySchema = z
+  .object({
+    _id: z.string().trim().optional(),
+    id: z.number().int().positive().optional(),
+  });
+
+function hasProjectIdentity(value: { _id?: string; id?: number }) {
+  const mongoId = typeof value._id === 'string' ? value._id.trim() : '';
+  return Boolean(mongoId) || typeof value.id === 'number';
+}
+
+const projectUpdateSchema = projectSchema
+  .merge(projectIdentitySchema)
+  .refine(hasProjectIdentity, {
+    message: 'Project id or _id is required.',
+  });
+
+const projectDeleteSchema = projectIdentitySchema.refine(hasProjectIdentity, {
+  message: 'Project id or _id is required.',
 });
 
-const projectDeleteSchema = z.object({
-  id: z.number().int().positive(),
-});
+type ProjectPayload = z.infer<typeof projectSchema>;
+type ProjectIdentity = z.infer<typeof projectIdentitySchema>;
+type ProjectWithIdentity = z.infer<typeof projectUpdateSchema>;
 
-type ProjectPayload = {
+type ProjectDocument = {
+  _id?: ObjectId | string;
+  id?: number;
   title: string;
   cat: string;
   desc: string;
   tags: string[];
   img: string;
-  link?: string;
-  showOnHome?: boolean;
-  homeSelectionOrder?: number | null;
+  link: string;
+  showOnHome: boolean;
+  homeSelectionOrder: number | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 };
 
-type ProjectWithId = ProjectPayload & { id: number };
-
-type ProjectDocument = {
+type ProjectResponse = {
+  _id: string;
   id: number;
   title: string;
   cat: string;
@@ -45,23 +72,28 @@ type ProjectDocument = {
   link: string;
   showOnHome: boolean;
   homeSelectionOrder: number | null;
-  createdAt: Date;
-  updatedAt: Date;
 };
 
-type DeletedProjectDocument = {
-  identityKey: string;
-  id?: number | null;
-  deletedAt: Date;
-};
-
-type CounterDocument = {
-  _id: string;
-  seq: number;
-};
-
-const PROJECTS_RESPONSE_CACHE_CONTROL = 'public, s-maxage=60, stale-while-revalidate=300';
+const PROJECTS_RESPONSE_CACHE_CONTROL = 'no-store';
 const DEFAULT_PROJECT_IMAGE_PATH = '/images/projects/default.png';
+const MAX_LITE_INLINE_IMAGE_CHARS = 120_000;
+const PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX = '/images/projects/uploads/';
+const PROJECT_IMAGE_UPLOADS_DIR = join(
+  process.cwd(),
+  'public',
+  'images',
+  'projects',
+  'uploads'
+);
+const DATA_URL_IMAGE_PATTERN = /^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/;
+const MIME_TO_EXTENSION: Record<string, string> = {
+  'image/jpeg': 'jpg',
+  'image/jpg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+  'image/gif': 'gif',
+  'image/avif': 'avif',
+};
 
 function getDatabaseErrorSummary(error: unknown) {
   if (!error || typeof error !== 'object') {
@@ -107,18 +139,126 @@ function normalizeTags(value: unknown): string[] {
   return [];
 }
 
-function normalizeProjectForResponse(project: Partial<ProjectDocument>, fallbackId: number): ProjectWithId {
+function normalizeProjectImageForResponse(value: unknown, liteMode: boolean) {
+  if (typeof value !== 'string') {
+    return DEFAULT_PROJECT_IMAGE_PATH;
+  }
+
+  const normalized = value.trim();
+  if (!normalized) {
+    return DEFAULT_PROJECT_IMAGE_PATH;
+  }
+
+  const isInlineImage = normalized.startsWith('data:image/');
+
+  if (liteMode && isInlineImage && normalized.length > MAX_LITE_INLINE_IMAGE_CHARS) {
+    return DEFAULT_PROJECT_IMAGE_PATH;
+  }
+
+  return normalized;
+}
+
+function getImageExtensionFromMimeType(mimeType: string) {
+  return MIME_TO_EXTENSION[mimeType.toLowerCase()] || 'webp';
+}
+
+function isManagedProjectImagePath(value: unknown): value is string {
+  return typeof value === 'string' && value.startsWith(PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX);
+}
+
+function getManagedProjectImageFilePath(publicPath: string) {
+  const fileName = publicPath.slice(PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX.length);
+
+  if (!/^[a-zA-Z0-9._-]+$/.test(fileName)) {
+    return null;
+  }
+
+  return join(PROJECT_IMAGE_UPLOADS_DIR, fileName);
+}
+
+async function removeManagedProjectImageFile(value: unknown) {
+  if (!isManagedProjectImagePath(value)) {
+    return;
+  }
+
+  const filePath = getManagedProjectImageFilePath(value);
+  if (!filePath) {
+    return;
+  }
+
+  try {
+    await unlink(filePath);
+  } catch (error) {
+    if (error && typeof error === 'object' && 'code' in error) {
+      const code = (error as { code?: unknown }).code;
+      if (code === 'ENOENT') {
+        return;
+      }
+    }
+
+    console.warn('[api/projects] Failed to remove project image file.', { value, error });
+  }
+}
+
+async function persistProjectImage(value: string) {
+  const normalized = value.trim();
+
+  if (!normalized) {
+    return DEFAULT_PROJECT_IMAGE_PATH;
+  }
+
+  if (!normalized.startsWith('data:image/')) {
+    return normalized;
+  }
+
+  const match = normalized.match(DATA_URL_IMAGE_PATTERN);
+  if (!match) {
+    throw new Error('Invalid image data URL.');
+  }
+
+  const mimeType = match[1].toLowerCase();
+  const base64Payload = match[2].replace(/\s+/g, '');
+
+  if (!base64Payload) {
+    throw new Error('Image payload is empty.');
+  }
+
+  const binary = Buffer.from(base64Payload, 'base64');
+  if (binary.length === 0) {
+    throw new Error('Image payload is invalid.');
+  }
+
+  await mkdir(PROJECT_IMAGE_UPLOADS_DIR, { recursive: true });
+
+  const extension = getImageExtensionFromMimeType(mimeType);
+  const fileName = `project-${Date.now()}-${Math.random().toString(36).slice(2, 10)}.${extension}`;
+  const filePath = join(PROJECT_IMAGE_UPLOADS_DIR, fileName);
+
+  await writeFile(filePath, binary);
+
+  return `${PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX}${fileName}`;
+}
+
+function normalizeProjectForResponse(
+  project: Partial<ProjectDocument>,
+  fallbackId: number,
+  options?: { liteMode?: boolean }
+): ProjectResponse {
+  const liteMode = Boolean(options?.liteMode);
   const normalizedId =
     typeof project.id === 'number' && Number.isInteger(project.id) && project.id > 0
       ? project.id
       : fallbackId;
 
-  const normalizedImage =
-    typeof project.img === 'string' && project.img.trim().length > 0
-      ? project.img
-      : DEFAULT_PROJECT_IMAGE_PATH;
+  const normalizedImage = normalizeProjectImageForResponse(project.img, liteMode);
 
   return {
+    _id:
+      project._id instanceof ObjectId
+        ? project._id.toHexString()
+        : typeof project._id === 'string'
+          ? project._id
+          : '',
     id: normalizedId,
     title: typeof project.title === 'string' ? project.title : '',
     cat: typeof project.cat === 'string' ? project.cat : '',
@@ -136,81 +276,13 @@ function normalizeProjectForResponse(project: Partial<ProjectDocument>, fallback
   };
 }
 
-function getFallbackProjects(): ProjectWithId[] {
-  if (!Array.isArray(fallbackProjectsSource)) {
-    return [];
-  }
-
-  return fallbackProjectsSource.map((project, index) => {
-    const candidate = project as Partial<ProjectDocument>;
-    const fallbackOrder = index + 1;
-
-    return normalizeProjectForResponse(
-      {
-        ...candidate,
-        id:
-          typeof candidate.id === 'number' && Number.isInteger(candidate.id) && candidate.id > 0
-            ? candidate.id
-            : fallbackOrder,
-        showOnHome: typeof candidate.showOnHome === 'boolean' ? candidate.showOnHome : true,
-        homeSelectionOrder:
-          typeof candidate.homeSelectionOrder === 'number' &&
-          Number.isInteger(candidate.homeSelectionOrder) &&
-          candidate.homeSelectionOrder > 0
-            ? candidate.homeSelectionOrder
-            : fallbackOrder,
-      },
-      fallbackOrder
-    );
-  });
-}
-
-function createProjectsResponse(projects: ProjectWithId[], source: string) {
+function createProjectsResponse(projects: ProjectResponse[]) {
   return NextResponse.json(projects, {
     headers: {
       'Cache-Control': PROJECTS_RESPONSE_CACHE_CONTROL,
-      'X-Projects-Source': source,
+      'X-Projects-Source': 'database',
     },
   });
-}
-
-function getProjectIdentityKey(project: Partial<ProjectWithId>) {
-  const title = typeof project.title === 'string' ? project.title.trim().toLowerCase() : '';
-  const link = typeof project.link === 'string' ? project.link.trim().toLowerCase() : '';
-
-  if (title || link) {
-    return `${title}::${link}`;
-  }
-
-  if (typeof project.id === 'number' && Number.isInteger(project.id) && project.id > 0) {
-    return `id:${project.id}`;
-  }
-
-  return '';
-}
-
-function mergeProjectLists(primary: ProjectWithId[], secondary: ProjectWithId[]) {
-  const merged: ProjectWithId[] = [];
-  const seenKeys = new Set<string>();
-
-  const pushIfMissing = (project: ProjectWithId) => {
-    const identityKey = getProjectIdentityKey(project);
-
-    if (identityKey && seenKeys.has(identityKey)) {
-      return;
-    }
-
-    if (identityKey) {
-      seenKeys.add(identityKey);
-    }
-
-    merged.push(project);
-  };
-
-  primary.forEach(pushIfMissing);
-  secondary.forEach(pushIfMissing);
-
-  return merged;
 }
 
 function isAdmin(request: Request) {
@@ -223,102 +295,112 @@ async function getProjectsCollection() {
   return db.collection<ProjectDocument>(getProjectsCollectionName());
 }
 
-async function getDeletedProjectsCollection() {
-  const db = await getMongoDb();
-  return db.collection<DeletedProjectDocument>('projects_deleted');
-}
+async function getNextProjectId() {
+  const projects = await getProjectsCollection();
 
-async function getDeletedProjectIdentityKeys() {
-  const deletedProjects = await getDeletedProjectsCollection();
-  const rows = await deletedProjects
-    .find({}, { projection: { identityKey: 1 } })
+  const rows = await projects
+    .aggregate<{ id?: unknown }>([
+      { $match: { $expr: { $isNumber: '$id' } } },
+      { $sort: { id: -1 } },
+      { $limit: 1 },
+      { $project: { id: 1 } },
+    ])
     .toArray();
 
-  const keys = new Set<string>();
-
-  for (const row of rows) {
-    if (typeof row.identityKey === 'string' && row.identityKey.length > 0) {
-      keys.add(row.identityKey);
-    }
+  const current = rows[0]?.id;
+  if (typeof current === 'number' && Number.isInteger(current) && current > 0) {
+    return current + 1;
   }
 
-  return keys;
+  return 1;
 }
 
-async function markProjectIdentityDeleted(project: Partial<ProjectWithId>) {
-  const identityKey = getProjectIdentityKey(project);
+function getProjectFilter(identity: ProjectIdentity): Record<string, unknown> {
+  const mongoId = typeof identity._id === 'string' ? identity._id.trim() : '';
 
-  if (!identityKey) {
-    return;
+  if (mongoId) {
+    return {
+      _id: ObjectId.isValid(mongoId) ? new ObjectId(mongoId) : mongoId,
+    };
   }
 
-  const deletedProjects = await getDeletedProjectsCollection();
+  if (typeof identity.id === 'number') {
+    return { id: identity.id };
+  }
 
-  await deletedProjects.updateOne(
-    { identityKey },
-    {
-      $set: {
-        identityKey,
-        id: typeof project.id === 'number' && Number.isInteger(project.id) ? project.id : null,
-        deletedAt: new Date(),
-      },
-    },
-    { upsert: true }
-  );
+  throw new Error('Project identity is missing.');
 }
 
-async function getNextProjectId() {
-  const db = await getMongoDb();
-  const counters = db.collection<CounterDocument>('counters');
-
-  const counter = await counters.findOneAndUpdate(
-    { _id: 'projects' },
-    { $inc: { seq: 1 } },
-    {
-      upsert: true,
-      returnDocument: 'after',
-      includeResultMetadata: false,
-    }
-  );
-
-  if (!counter || typeof counter.seq !== 'number') {
-    throw new Error('Failed to generate project id.');
+function parseProjectIdentityFromSearchParams(searchParams: URLSearchParams): {
+  identity: ProjectIdentity | null;
+  error?: string;
+} {
+  const mongoId = (searchParams.get('_id') || '').trim();
+  if (mongoId) {
+    return { identity: { _id: mongoId } };
   }
 
-  return counter.seq;
+  const idRaw = searchParams.get('id');
+  if (idRaw === null || idRaw.trim().length === 0) {
+    return { identity: null };
+  }
+
+  const parsedId = Number(idRaw.trim());
+  if (!Number.isInteger(parsedId) || parsedId <= 0) {
+    return { identity: null, error: 'Invalid id query parameter.' };
+  }
+
+  return { identity: { id: parsedId } };
 }
 
 async function hasSelectionOrderConflict(
   homeSelectionOrder: number | null,
-  excludedProjectId?: number
+  excludedIdentity?: ProjectIdentity
 ) {
   if (homeSelectionOrder === null) {
     return false;
   }
 
   const projects = await getProjectsCollection();
+  const conflict = await projects.findOne({ showOnHome: true, homeSelectionOrder });
 
-  const query: Record<string, unknown> = {
-    showOnHome: true,
-    homeSelectionOrder,
-  };
-
-  if (typeof excludedProjectId === 'number') {
-    query.id = { $ne: excludedProjectId };
+  if (!conflict) {
+    return false;
   }
 
-  const conflict = await projects.findOne(query);
-  return Boolean(conflict);
+  if (!excludedIdentity) {
+    return true;
+  }
+
+  if (
+    typeof excludedIdentity.id === 'number' &&
+    typeof conflict.id === 'number' &&
+    excludedIdentity.id === conflict.id
+  ) {
+    return false;
+  }
+
+  const excludedMongoId =
+    typeof excludedIdentity._id === 'string' ? excludedIdentity._id.trim() : '';
+
+  if (excludedMongoId) {
+    const conflictMongoId =
+      conflict._id instanceof ObjectId
+        ? conflict._id.toHexString()
+        : typeof conflict._id === 'string'
+          ? conflict._id
+          : '';
+
+    if (conflictMongoId && conflictMongoId === excludedMongoId) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
-export async function GET() {
-  const fallbackProjects = getFallbackProjects();
-
+export async function GET(request: Request) {
   if (!hasMongoConfig()) {
-    if (fallbackProjects.length > 0) {
-      return createProjectsResponse(fallbackProjects, 'fallback-no-db-config');
-    }
-
     return NextResponse.json(
       { success: false, error: databaseUnavailableErrorMessage() },
       { status: 503 }
@@ -326,45 +408,109 @@ export async function GET() {
   }
 
   try {
-    const projects = await getProjectsCollection();
-    const rows = await projects.find().sort({ id: -1 }).toArray();
-    const deletedIdentityKeys = await getDeletedProjectIdentityKeys();
-
-    const response = rows.map((project: ProjectDocument, index: number) =>
-      normalizeProjectForResponse(project, index + 1)
+    const url = new URL(request.url);
+    const liteMode = ['1', 'true', 'yes'].includes(
+      (url.searchParams.get('lite') || '').toLowerCase()
     );
+    const queryIdentity = parseProjectIdentityFromSearchParams(url.searchParams);
 
-    const filteredFallbackProjects = fallbackProjects.filter((project) => {
-      const identityKey = getProjectIdentityKey(project);
-
-      if (!identityKey) {
-        return true;
-      }
-
-      return !deletedIdentityKeys.has(identityKey);
-    });
-
-    if (response.length === 0 && filteredFallbackProjects.length > 0) {
-      return createProjectsResponse(filteredFallbackProjects, 'fallback-empty-db');
+    if (queryIdentity.error) {
+      return NextResponse.json(
+        { success: false, error: queryIdentity.error },
+        { status: 400 }
+      );
     }
 
-    const fallbackProjectsForMerge = filteredFallbackProjects.map((project) => ({
-      ...project,
-      showOnHome: false,
-      homeSelectionOrder: null,
-    }));
+    const projects = await getProjectsCollection();
 
-    const mergedResponse = mergeProjectLists(response, fallbackProjectsForMerge);
-    const source = mergedResponse.length > response.length ? 'database+fallback-merge' : 'database';
+    if (queryIdentity.identity) {
+      let filter: Record<string, unknown>;
 
-    return createProjectsResponse(mergedResponse, source);
+      try {
+        filter = getProjectFilter(queryIdentity.identity);
+      } catch (error) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: error instanceof Error ? error.message : 'Invalid project identifier.',
+          },
+          { status: 400 }
+        );
+      }
+
+      const project = await projects.findOne(filter);
+      if (!project) {
+        return NextResponse.json({ success: false, error: 'Project not found.' }, { status: 404 });
+      }
+
+      const fallbackId =
+        typeof project.id === 'number' && Number.isInteger(project.id) && project.id > 0
+          ? project.id
+          : 1;
+
+      return NextResponse.json(normalizeProjectForResponse(project, fallbackId), {
+        headers: {
+          'Cache-Control': 'no-store',
+          'X-Projects-Source': 'database',
+        },
+      });
+    }
+
+    const rows = liteMode
+      ? await projects
+          .aggregate<Partial<ProjectDocument>>([
+            { $sort: { id: -1, _id: -1 } },
+            {
+              $project: {
+                _id: 1,
+                id: 1,
+                title: 1,
+                cat: 1,
+                desc: 1,
+                tags: 1,
+                link: 1,
+                showOnHome: 1,
+                homeSelectionOrder: 1,
+                img: {
+                  $let: {
+                    vars: {
+                      imgValue: '$img',
+                      imgType: { $type: '$img' },
+                    },
+                    in: {
+                      $cond: [
+                        { $eq: ['$$imgType', 'string'] },
+                        {
+                          $cond: [
+                            {
+                              $and: [
+                                { $regexMatch: { input: '$$imgValue', regex: '^data:image/' } },
+                                { $gt: [{ $strLenCP: '$$imgValue' }, MAX_LITE_INLINE_IMAGE_CHARS] },
+                              ],
+                            },
+                            DEFAULT_PROJECT_IMAGE_PATH,
+                            '$$imgValue',
+                          ],
+                        },
+                        DEFAULT_PROJECT_IMAGE_PATH,
+                      ],
+                    },
+                  },
+                },
+              },
+            },
+          ])
+          .toArray()
+      : await projects.find().sort({ id: -1, _id: -1 }).toArray();
+
+    const response = rows.map((project, index) =>
+      normalizeProjectForResponse(project, rows.length - index, { liteMode })
+    );
+
+    return createProjectsResponse(response);
   } catch (error) {
     console.error('[api/projects][GET] Database read failed.', error);
     const summary = getDatabaseErrorSummary(error);
-
-    if (fallbackProjects.length > 0) {
-      return createProjectsResponse(fallbackProjects, 'fallback-db-error');
-    }
 
     return NextResponse.json(
       {
@@ -430,14 +576,15 @@ export async function POST(request: Request) {
     const id = await getNextProjectId();
     const now = new Date();
     const projects = await getProjectsCollection();
+    const persistedImage = await persistProjectImage(normalizedProject.img);
 
-    await projects.insertOne({
+    const result = await projects.insertOne({
       id,
       title: normalizedProject.title,
       cat: normalizedProject.cat,
       desc: normalizedProject.desc,
       tags: normalizedProject.tags,
-      img: normalizedProject.img,
+      img: persistedImage,
       link: normalizedProject.link || '',
       showOnHome: Boolean(normalizedProject.showOnHome),
       homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
@@ -445,9 +592,17 @@ export async function POST(request: Request) {
       updatedAt: now,
     });
 
+    const insertedMongoId =
+      result.insertedId instanceof ObjectId
+        ? result.insertedId.toHexString()
+        : String(result.insertedId);
+
     return NextResponse.json({
       success: true,
-      project: { ...normalizedProject, id },
+      project: {
+        _id: insertedMongoId,
+        id,
+      },
     });
   } catch (error) {
     console.error('[api/projects][POST] Database write failed.', error);
@@ -475,10 +630,13 @@ export async function PUT(request: Request) {
     );
   }
 
-  let project: ProjectWithId;
+  let project: ProjectWithIdentity;
+  let includesImageField = false;
 
   try {
     const body = await request.json();
+    includesImageField =
+      typeof body === 'object' && body !== null && Object.prototype.hasOwnProperty.call(body, 'img');
     project = projectUpdateSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -491,7 +649,7 @@ export async function PUT(request: Request) {
     );
   }
 
-  const normalizedProject: ProjectWithId = {
+  const normalizedProject: ProjectWithIdentity = {
     ...project,
     title: project.title.trim(),
     cat: project.cat.trim(),
@@ -503,9 +661,11 @@ export async function PUT(request: Request) {
     homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
   };
 
+  const normalizedImage = (project.img || '').trim() || DEFAULT_PROJECT_IMAGE_PATH;
+
   if (
     normalizedProject.showOnHome &&
-    (await hasSelectionOrderConflict(normalizedProject.homeSelectionOrder ?? null, normalizedProject.id))
+    (await hasSelectionOrderConflict(normalizedProject.homeSelectionOrder ?? null, normalizedProject))
   ) {
     return NextResponse.json(
       { success: false, error: 'This home selection order is already in use.' },
@@ -513,34 +673,71 @@ export async function PUT(request: Request) {
     );
   }
 
+  let filter: Record<string, unknown>;
+
+  try {
+    filter = getProjectFilter(normalizedProject);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Invalid project identifier.',
+      },
+      { status: 400 }
+    );
+  }
+
   try {
     const projects = await getProjectsCollection();
+    const existingProject = await projects.findOne(filter);
 
-    const result = await projects.updateOne(
-      { id: normalizedProject.id },
-      {
-        $set: {
-          title: normalizedProject.title,
-          cat: normalizedProject.cat,
-          desc: normalizedProject.desc,
-          tags: normalizedProject.tags,
-          img: normalizedProject.img,
-          link: normalizedProject.link || '',
-          showOnHome: Boolean(normalizedProject.showOnHome),
-          homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
-          updatedAt: new Date(),
-        },
-      }
-    );
-
-    if (result.matchedCount === 0) {
-      return NextResponse.json(
-        { success: false, error: 'Project not found.' },
-        { status: 404 }
-      );
+    if (!existingProject) {
+      return NextResponse.json({ success: false, error: 'Project not found.' }, { status: 404 });
     }
 
-    return NextResponse.json({ success: true, project: normalizedProject });
+    let nextImage =
+      typeof existingProject.img === 'string' && existingProject.img.trim().length > 0
+        ? existingProject.img
+        : DEFAULT_PROJECT_IMAGE_PATH;
+
+    if (includesImageField) {
+      nextImage = await persistProjectImage(normalizedImage);
+    }
+
+    const updateSet: Partial<ProjectDocument> = {
+      title: normalizedProject.title,
+      cat: normalizedProject.cat,
+      desc: normalizedProject.desc,
+      tags: normalizedProject.tags,
+      link: normalizedProject.link || '',
+      showOnHome: Boolean(normalizedProject.showOnHome),
+      homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
+      updatedAt: new Date(),
+    };
+
+    if (includesImageField) {
+      updateSet.img = nextImage;
+    }
+
+    const result = await projects.updateOne(filter, {
+      $set: updateSet,
+    });
+
+    if (result.matchedCount === 0) {
+      return NextResponse.json({ success: false, error: 'Project not found.' }, { status: 404 });
+    }
+
+    if (includesImageField && nextImage !== existingProject.img) {
+      await removeManagedProjectImageFile(existingProject.img);
+    }
+
+    return NextResponse.json({
+      success: true,
+      project: {
+        _id: typeof normalizedProject._id === 'string' ? normalizedProject._id : '',
+        id: typeof normalizedProject.id === 'number' ? normalizedProject.id : null,
+      },
+    });
   } catch (error) {
     console.error('[api/projects][PUT] Database write failed.', error);
     const summary = getDatabaseErrorSummary(error);
@@ -567,11 +764,11 @@ export async function DELETE(request: Request) {
     );
   }
 
-  let id: number;
+  let identity: ProjectIdentity;
 
   try {
     const body = await request.json();
-    id = projectDeleteSchema.parse(body).id;
+    identity = projectDeleteSchema.parse(body);
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: 'Invalid delete request' }, { status: 400 });
@@ -583,41 +780,37 @@ export async function DELETE(request: Request) {
     );
   }
 
-  try {
-    const fallbackProject = getFallbackProjects().find((project) => project.id === id) ?? null;
-    const projects = await getProjectsCollection();
-    const existingProject = await projects.findOne({ id });
+  let filter: Record<string, unknown>;
 
-    if (!existingProject && !fallbackProject) {
-      return NextResponse.json(
-        { success: false, error: 'Project not found.' },
-        { status: 404 }
-      );
+  try {
+    filter = getProjectFilter(identity);
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Invalid project identifier.',
+      },
+      { status: 400 }
+    );
+  }
+
+  try {
+    const projects = await getProjectsCollection();
+    const existingProject = await projects.findOne(filter, { projection: { img: 1 } });
+
+    if (!existingProject) {
+      return NextResponse.json({ success: false, error: 'Project not found.' }, { status: 404 });
     }
 
-    const result = await projects.deleteOne({ id });
+    const result = await projects.deleteOne(filter);
 
-    const deleteIdentityPayload: Partial<ProjectWithId> = {
-      id,
-      title:
-        typeof existingProject?.title === 'string'
-          ? existingProject.title
-          : typeof fallbackProject?.title === 'string'
-            ? fallbackProject.title
-            : '',
-      link:
-        typeof existingProject?.link === 'string'
-          ? existingProject.link
-          : typeof fallbackProject?.link === 'string'
-            ? fallbackProject.link
-            : '',
-    };
+    if (result.deletedCount === 0) {
+      return NextResponse.json({ success: false, error: 'Project not found.' }, { status: 404 });
+    }
 
-    await markProjectIdentityDeleted(deleteIdentityPayload);
+    await removeManagedProjectImageFile(existingProject.img);
 
-    const source = result.deletedCount > 0 ? 'database' : 'fallback-only';
-
-    return NextResponse.json({ success: true, source });
+    return NextResponse.json({ success: true, source: 'database' });
   } catch (error) {
     console.error('[api/projects][DELETE] Database write failed.', error);
     const summary = getDatabaseErrorSummary(error);

@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X } from 'lucide-react'
 
 interface Project {
+  _id?: string;
   id?: number;
   title: string;
   cat: string;
@@ -18,6 +19,71 @@ interface Project {
   homeSelectionOrder?: number | null;
 }
 
+const MAX_IMAGE_DIMENSION = 1400
+const OUTPUT_IMAGE_QUALITY = 0.74
+const DEFAULT_PROJECT_IMAGE_PATH = '/images/projects/default.png'
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+        return
+      }
+
+      reject(new Error('Failed to read image file.'))
+    }
+
+    reader.onerror = () => {
+      reject(new Error('Failed to read image file.'))
+    }
+
+    reader.readAsDataURL(file)
+  })
+}
+
+function loadImageElement(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image()
+
+    image.onload = () => resolve(image)
+    image.onerror = () => reject(new Error('Failed to load image for optimization.'))
+    image.src = src
+  })
+}
+
+async function optimizeImageForStorage(file: File): Promise<string> {
+  const originalDataUrl = await readFileAsDataUrl(file)
+  const image = await loadImageElement(originalDataUrl)
+
+  const originalWidth = image.width || 1
+  const originalHeight = image.height || 1
+  const longestEdge = Math.max(originalWidth, originalHeight)
+  const scale = longestEdge > MAX_IMAGE_DIMENSION ? MAX_IMAGE_DIMENSION / longestEdge : 1
+
+  const targetWidth = Math.max(1, Math.round(originalWidth * scale))
+  const targetHeight = Math.max(1, Math.round(originalHeight * scale))
+
+  const canvas = document.createElement('canvas')
+  canvas.width = targetWidth
+  canvas.height = targetHeight
+
+  const context = canvas.getContext('2d')
+  if (!context) {
+    return originalDataUrl
+  }
+
+  context.drawImage(image, 0, 0, targetWidth, targetHeight)
+
+  try {
+    return canvas.toDataURL('image/webp', OUTPUT_IMAGE_QUALITY)
+  } catch {
+    return originalDataUrl
+  }
+}
+
 function asProjectsArray(value: unknown): Project[] {
   if (!Array.isArray(value)) {
     return []
@@ -27,6 +93,7 @@ function asProjectsArray(value: unknown): Project[] {
     const candidate = item as Partial<Project>
 
     return {
+      _id: typeof candidate._id === 'string' ? candidate._id : '',
       id: typeof candidate.id === 'number' ? candidate.id : index + 1,
       title: typeof candidate.title === 'string' ? candidate.title : '',
       cat: typeof candidate.cat === 'string' ? candidate.cat : '',
@@ -43,8 +110,68 @@ function asProjectsArray(value: unknown): Project[] {
   })
 }
 
+function extractProjects(value: unknown): Project[] {
+  if (Array.isArray(value)) {
+    return asProjectsArray(value)
+  }
+
+  if (value && typeof value === 'object') {
+    const candidate = value as { projects?: unknown; data?: unknown }
+
+    if (Array.isArray(candidate.projects)) {
+      return asProjectsArray(candidate.projects)
+    }
+
+    if (Array.isArray(candidate.data)) {
+      return asProjectsArray(candidate.data)
+    }
+  }
+
+  return []
+}
+
+function extractProject(value: unknown): Project | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return null
+  }
+
+  const [project] = asProjectsArray([value])
+  return project ?? null
+}
+
+function getProjectIdentityQuery(project: Project) {
+  const mongoId = typeof project._id === 'string' ? project._id.trim() : ''
+  if (mongoId.length > 0) {
+    return `_id=${encodeURIComponent(mongoId)}`
+  }
+
+  if (typeof project.id === 'number' && Number.isInteger(project.id) && project.id > 0) {
+    return `id=${project.id}`
+  }
+
+  return ''
+}
+
+function hasSameProjectIdentity(left: Project, right: Project) {
+  const leftMongoId = typeof left._id === 'string' ? left._id.trim() : ''
+  const rightMongoId = typeof right._id === 'string' ? right._id.trim() : ''
+
+  if (leftMongoId && rightMongoId) {
+    return leftMongoId === rightMongoId
+  }
+
+  if (typeof left.id === 'number' && typeof right.id === 'number') {
+    return left.id === right.id
+  }
+
+  return false
+}
+
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
+  const [isProjectsLoading, setIsProjectsLoading] = useState(true)
+  const [isEditPreparing, setIsEditPreparing] = useState(false)
+  const [originalEditImage, setOriginalEditImage] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [newProject, setNewProject] = useState<Project>({
@@ -66,18 +193,22 @@ export default function AdminProjectsPage() {
 
   const fetchProjects = async () => {
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 12000)
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
 
+    setIsProjectsLoading(true)
     try {
-      const res = await fetch('/api/projects', { signal: controller.signal })
+      const res = await fetch('/api/projects?lite=1', {
+        cache: 'no-store',
+        signal: controller.signal,
+      })
       if (!res.ok) return
       const data = await res.json()
-      if (Array.isArray(data)) {
-        setProjects(asProjectsArray(data))
-      }
+      const projectsData = extractProjects(data)
+      setProjects(projectsData)
     } catch {
     } finally {
       clearTimeout(timeoutId)
+      setIsProjectsLoading(false)
     }
   }
 
@@ -86,15 +217,17 @@ export default function AdminProjectsPage() {
     router.push('/admin/login')
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setNewProject({ ...newProject, img: reader.result as string })
+      try {
+        const optimizedImage = await optimizeImageForStorage(file)
+        setNewProject((current) => ({ ...current, img: optimizedImage }))
+      } catch {
       }
-      reader.readAsDataURL(file)
     }
+
+    e.currentTarget.value = ''
   }
 
   const handleAddProject = async (e: React.FormEvent) => {
@@ -103,7 +236,15 @@ export default function AdminProjectsPage() {
     try {
       const url = '/api/projects'
       const method = editMode ? 'PUT' : 'POST'
-      const body = newProject
+      const projectDraft: Project = {
+        ...newProject,
+        tags: [...newProject.tags],
+      }
+      const body: Record<string, unknown> = { ...projectDraft }
+
+      if (editMode && projectDraft.img === originalEditImage) {
+        delete body.img
+      }
 
       const res = await fetch(url, {
         method,
@@ -114,8 +255,30 @@ export default function AdminProjectsPage() {
       const data = await res.json()
 
       if (res.ok) {
+        if (editMode) {
+          setProjects((current) =>
+            current.map((project) =>
+              hasSameProjectIdentity(project, projectDraft)
+                ? {
+                    ...project,
+                    ...projectDraft,
+                    img: projectDraft.img || project.img || DEFAULT_PROJECT_IMAGE_PATH,
+                  }
+                : project
+            )
+          )
+        } else {
+          const createdProject: Project = {
+            ...projectDraft,
+            _id: typeof data?.project?._id === 'string' ? data.project._id : projectDraft._id,
+            id: typeof data?.project?.id === 'number' ? data.project.id : projectDraft.id,
+            img: projectDraft.img || DEFAULT_PROJECT_IMAGE_PATH,
+          }
+
+          setProjects((current) => [createdProject, ...current])
+        }
+
         resetForm()
-        fetchProjects()
       } else {
         alert(data.error || 'Failed to save project')
       }
@@ -126,35 +289,71 @@ export default function AdminProjectsPage() {
   }
 
   const resetForm = () => {
-    setNewProject({ title: '', cat: '', desc: '', tags: [], img: '', link: '', showOnHome: false, homeSelectionOrder: null })
+    setNewProject({ _id: '', title: '', cat: '', desc: '', tags: [], img: '', link: '', showOnHome: false, homeSelectionOrder: null })
+    setOriginalEditImage('')
     setTagInput('')
     setShowAddForm(false)
     setEditMode(false)
   }
 
-  const handleEditClick = (proj: Project) => {
-    setNewProject(proj)
-    setTagInput(proj.tags.join(', '))
+  const handleEditClick = async (proj: Project) => {
+    const identityQuery = getProjectIdentityQuery(proj)
+
+    if (!identityQuery) {
+      alert('Unable to identify this project for editing.')
+      return
+    }
+
+    setIsEditPreparing(true)
+
+    let projectForEdit: Project | null = null
+
+    try {
+      const res = await fetch(`/api/projects?${identityQuery}`, { cache: 'no-store' })
+      if (!res.ok) {
+        alert('Failed to load project details. Please try again.')
+        return
+      }
+
+      const data = await res.json()
+      projectForEdit = extractProject(data)
+
+      if (!projectForEdit) {
+        alert('Failed to load project details. Please try again.')
+        return
+      }
+    } catch {
+      alert('Failed to load project details. Please try again.')
+      return
+    } finally {
+      setIsEditPreparing(false)
+    }
+
+    setNewProject(projectForEdit)
+  setOriginalEditImage(projectForEdit.img || '')
+    setTagInput(projectForEdit.tags.join(', '))
     setEditMode(true)
     setShowAddForm(true)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const handleDeleteProject = async (id?: number) => {
-    if (!id) return
+  const handleDeleteProject = async (project: Project) => {
+    if (!project._id && !project.id) return
     if (!confirm('Are you sure you want to delete this project?')) return
 
     try {
       const res = await fetch('/api/projects', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify({ _id: project._id, id: project.id }),
       })
 
       const data = await res.json()
 
       if (res.ok) {
-        fetchProjects()
+        setProjects((current) =>
+          current.filter((item) => !hasSameProjectIdentity(item, project))
+        )
       } else {
         alert(data.error || 'Failed to delete project')
       }
@@ -328,14 +527,20 @@ export default function AdminProjectsPage() {
           </AnimatePresence>
 
           <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-8">
-            {projects.map((proj, idx) => (
+            {projects.length === 0 ? (
+              <div className="sm:col-span-2 xl:col-span-3 rounded-2xl border border-slate-100 bg-white p-8 text-center">
+                <p className="text-sm font-bold text-slate-500">
+                  {isProjectsLoading ? 'Loading projects...' : 'No projects found.'}
+                </p>
+              </div>
+            ) : projects.map((proj, idx) => (
               <motion.div
                 layout
-                key={proj.id ?? idx}
+                key={proj._id || proj.id || idx}
                 className="bg-white border border-slate-100 rounded-2xl md:rounded-[32px] overflow-hidden group hover:shadow-2xl transition-all duration-500"
               >
                 <div className="h-52 md:h-64 relative overflow-hidden">
-                  <img src={proj.img} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                  <img src={proj.img || DEFAULT_PROJECT_IMAGE_PATH} alt={proj.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
                   <div className="absolute inset-0 bg-black/20"></div>
                   <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/50">
                     <span className="text-black font-black text-[8px] uppercase tracking-widest leading-none">{proj.cat}</span>
@@ -343,12 +548,13 @@ export default function AdminProjectsPage() {
                   <div className="absolute top-4 md:top-6 right-4 md:right-6 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => handleEditClick(proj)}
+                      disabled={isEditPreparing}
                       className="p-2.5 md:p-3 bg-white text-black hover:bg-[#ffb400] rounded-xl shadow-lg transition-colors"
                     >
                       <Edit2 size={16} />
                     </button>
                     <button
-                      onClick={() => handleDeleteProject(proj.id)}
+                      onClick={() => handleDeleteProject(proj)}
                       className="p-2.5 md:p-3 bg-red-500 text-white rounded-xl shadow-lg hover:bg-red-600 transition-colors"
                     >
                       <Trash2 size={16} />

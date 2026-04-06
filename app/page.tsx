@@ -45,6 +45,26 @@ function asProjectsArray(value: unknown): Project[] {
   })
 }
 
+function extractProjects(value: unknown): Project[] {
+  if (Array.isArray(value)) {
+    return asProjectsArray(value)
+  }
+
+  if (value && typeof value === 'object') {
+    const candidate = value as { projects?: unknown; data?: unknown }
+
+    if (Array.isArray(candidate.projects)) {
+      return asProjectsArray(candidate.projects)
+    }
+
+    if (Array.isArray(candidate.data)) {
+      return asProjectsArray(candidate.data)
+    }
+  }
+
+  return []
+}
+
 function getHomeProjects(data: Project[]) {
   const selectedForHome = data
     .filter((project) => Boolean(project.showOnHome))
@@ -133,12 +153,14 @@ export default function Home() {
       const timeoutId = setTimeout(() => controller.abort(), 12000)
 
       try {
-        const response = await fetch('/api/projects', { signal: controller.signal })
+        const response = await fetch('/api/projects?lite=1', {
+          signal: controller.signal,
+          cache: 'no-store',
+        })
         if (!response.ok) return
         const data = await response.json()
-        if (Array.isArray(data)) {
-          setProjectsList(getHomeProjects(asProjectsArray(data)))
-        }
+        const projectsData = extractProjects(data)
+        setProjectsList(getHomeProjects(projectsData))
       } catch {
       } finally {
         clearTimeout(timeoutId)
@@ -531,11 +553,10 @@ export default function Home() {
                 className="group relative bg-slate-50/50 backdrop-blur-sm rounded-[2rem] md:rounded-[2.5rem] p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.03)] hover:shadow-[0_40px_80px_-20px_rgba(255,180,0,0.15)] flex flex-col"
               >
                 <div className="relative h-60 md:h-72 overflow-hidden rounded-[1.8rem] md:rounded-[2rem]">
-                  <Image
+                  <img
                     src={proj.img || '/logo.png'}
                     alt={proj.title}
-                    fill
-                    className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                    className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 

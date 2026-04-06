@@ -3,13 +3,12 @@
 import React from "react";
 import { useEffect, useState } from "react";
 import Navbar from "../../components/navbar";
-import Image from "next/image";
 import { ArrowUpRight } from "lucide-react";
-import "../globals.css";
 import Link from "next/link";
 import { Home } from "lucide-react";
 
 interface Project {
+  _id?: string;
   id?: number;
   title: string;
   cat: string;
@@ -46,6 +45,7 @@ function asProjectsArray(value: unknown): Project[] {
     const candidate = item as Partial<Project>;
 
     return {
+      _id: typeof candidate._id === "string" ? candidate._id : "",
       id: typeof candidate.id === "number" ? candidate.id : index + 1,
       title: typeof candidate.title === "string" ? candidate.title : "",
       cat: typeof candidate.cat === "string" ? candidate.cat : "",
@@ -62,6 +62,25 @@ function asProjectsArray(value: unknown): Project[] {
   });
 }
 
+function extractProjects(value: unknown): Project[] {
+  if (Array.isArray(value)) {
+    return asProjectsArray(value);
+  }
+
+  if (value && typeof value === "object") {
+    const candidate = value as { projects?: unknown; data?: unknown };
+    if (Array.isArray(candidate.projects)) {
+      return asProjectsArray(candidate.projects);
+    }
+
+    if (Array.isArray(candidate.data)) {
+      return asProjectsArray(candidate.data);
+    }
+  }
+
+  return [];
+}
+
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
 
@@ -71,15 +90,14 @@ export default function ProjectsPage() {
       const timeoutId = setTimeout(() => controller.abort(), 12000);
 
       try {
-        const response = await fetch('/api/projects', { signal: controller.signal });
+        const response = await fetch('/api/projects?lite=1', {
+          signal: controller.signal,
+          cache: 'no-store',
+        });
         if (!response.ok) return;
         const data = await response.json();
-        if (!Array.isArray(data)) {
-          clearTimeout(timeoutId);
-          return;
-        }
-
-        setProjects(sortProjects(asProjectsArray(data)));
+        const projectsData = extractProjects(data);
+        setProjects(sortProjects(projectsData));
       } catch {
       } finally {
         clearTimeout(timeoutId);
@@ -110,15 +128,14 @@ export default function ProjectsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 md:gap-10">
           {projects.map((proj: Project, index: number) => (
             <div
-              key={proj.id ?? index}
+              key={proj._id || proj.id || index}
               className="group relative bg-slate-50/50 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
             >
               <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">
-                <Image
+                <img
                   src={proj.img || "/logo.png"}
                   alt={proj.title}
-                  fill
-                  className="object-cover transition-transform duration-1000 group-hover:scale-110"
+                  className="h-full w-full object-cover transition-transform duration-1000 group-hover:scale-110"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 {proj.cat && (

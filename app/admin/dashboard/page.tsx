@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { LogOut, LayoutDashboard, FolderKanban } from 'lucide-react'
 
 interface Project {
+  _id?: string;
   id?: number;
   title: string;
   cat: string;
@@ -26,6 +27,7 @@ function asProjectsArray(value: unknown): Project[] {
     const candidate = item as Partial<Project>
 
     return {
+      _id: typeof candidate._id === 'string' ? candidate._id : '',
       id: typeof candidate.id === 'number' ? candidate.id : index + 1,
       title: typeof candidate.title === 'string' ? candidate.title : '',
       cat: typeof candidate.cat === 'string' ? candidate.cat : '',
@@ -42,29 +44,54 @@ function asProjectsArray(value: unknown): Project[] {
   })
 }
 
+function extractProjects(value: unknown): Project[] {
+  if (Array.isArray(value)) {
+    return asProjectsArray(value)
+  }
+
+  if (value && typeof value === 'object') {
+    const candidate = value as { projects?: unknown; data?: unknown }
+
+    if (Array.isArray(candidate.projects)) {
+      return asProjectsArray(candidate.projects)
+    }
+
+    if (Array.isArray(candidate.data)) {
+      return asProjectsArray(candidate.data)
+    }
+  }
+
+  return []
+}
+
 export default function AdminDashboard() {
   const [projects, setProjects] = useState<Project[]>([])
-  const [selectionInputs, setSelectionInputs] = useState<Record<number, string>>({})
+  const [selectionInputs, setSelectionInputs] = useState<Record<string, string>>({})
   const router = useRouter()
+
+  const getProjectIdentityKey = (project: Project) => {
+    if (project._id && project._id.length > 0) {
+      return `mongo:${project._id}`
+    }
+
+    if (typeof project.id === 'number') {
+      return `id:${project.id}`
+    }
+
+    return null
+  }
 
   useEffect(() => {
     fetchProjects()
   }, [])
 
   const fetchProjects = async () => {
-    const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 12000)
-
     try {
-      const res = await fetch('/api/projects', { signal: controller.signal })
+      const res = await fetch('/api/projects?lite=1', { cache: 'no-store' })
       if (!res.ok) return
       const data = await res.json()
-      if (Array.isArray(data)) {
-        setProjects(asProjectsArray(data))
-      }
+      setProjects(extractProjects(data))
     } catch {
-    } finally {
-      clearTimeout(timeoutId)
     }
   }
 
@@ -74,20 +101,25 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    const nextInputs: Record<number, string> = {}
+    const nextInputs: Record<string, string> = {}
     projects.forEach((project) => {
-      if (project.id) {
-        nextInputs[project.id] =
-          project.showOnHome && typeof project.homeSelectionOrder === 'number'
-            ? String(project.homeSelectionOrder)
-            : ''
+      const identityKey = getProjectIdentityKey(project)
+
+      if (!identityKey) {
+        return
       }
+
+      nextInputs[identityKey] =
+        project.showOnHome && typeof project.homeSelectionOrder === 'number'
+          ? String(project.homeSelectionOrder)
+          : ''
     })
     setSelectionInputs(nextInputs)
   }, [projects])
 
   const handleSelectionOrderSave = async (project: Project, rawValue: string) => {
-    if (!project.id) return
+    const identityKey = getProjectIdentityKey(project)
+    if (!identityKey) return
 
     const value = rawValue.trim()
     const parsedOrder = value === '' ? null : Number(value)
@@ -100,7 +132,14 @@ export default function AdminDashboard() {
     if (
       parsedOrder !== null &&
       projects.some(
-        (item) => item.id !== project.id && item.showOnHome && item.homeSelectionOrder === parsedOrder
+        (item) => {
+          const itemIdentityKey = getProjectIdentityKey(item)
+          return (
+            itemIdentityKey !== identityKey &&
+            item.showOnHome &&
+            item.homeSelectionOrder === parsedOrder
+          )
+        }
       )
     ) {
       alert('This number is already used by another selected project.')
@@ -112,7 +151,13 @@ export default function AdminDashboard() {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...project,
+          _id: project._id,
+          id: project.id,
+          title: project.title,
+          cat: project.cat,
+          desc: project.desc,
+          tags: project.tags,
+          link: project.link,
           showOnHome: parsedOrder !== null,
           homeSelectionOrder: parsedOrder,
         }),
@@ -169,29 +214,33 @@ export default function AdminDashboard() {
             <h3 className="text-sm font-black uppercase tracking-[0.25em] text-slate-700 mb-2">Home Page Project Selection</h3>
             <p className="text-[11px] text-slate-500 mb-4">Selected: <span className="font-black text-slate-800">{selectedProjects.length}</span> (Home page shows first 9 only)</p>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {projects.map((project) => (
-                <label key={project.id ?? project.title} className="flex items-center justify-between gap-2 md:gap-3 border border-slate-100 rounded-xl px-3 md:px-4 py-3 bg-slate-50/60">
-                  <span className="text-[12px] font-bold text-slate-700 line-clamp-1">{project.title}</span>
-                  <input
-                    type="number"
-                    min={1}
-                    value={project.id ? (selectionInputs[project.id] ?? '') : ''}
-                    onChange={(e) => {
-                      if (!project.id) return
-                      setSelectionInputs((prev) => ({ ...prev, [project.id as number]: e.target.value }))
-                    }}
-                    onBlur={(e) => handleSelectionOrderSave(project, e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.preventDefault()
-                        handleSelectionOrderSave(project, (e.currentTarget as HTMLInputElement).value)
-                      }
-                    }}
-                    placeholder="-"
-                    className="w-16 h-9 text-center text-xs font-black border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#ffb400]"
-                  />
-                </label>
-              ))}
+              {projects.map((project) => {
+                const identityKey = getProjectIdentityKey(project)
+
+                return (
+                  <label key={project._id || project.id || project.title} className="flex items-center justify-between gap-2 md:gap-3 border border-slate-100 rounded-xl px-3 md:px-4 py-3 bg-slate-50/60">
+                    <span className="text-[12px] font-bold text-slate-700 line-clamp-1">{project.title}</span>
+                    <input
+                      type="number"
+                      min={1}
+                      value={identityKey ? (selectionInputs[identityKey] ?? '') : ''}
+                      onChange={(e) => {
+                        if (!identityKey) return
+                        setSelectionInputs((prev) => ({ ...prev, [identityKey]: e.target.value }))
+                      }}
+                      onBlur={(e) => handleSelectionOrderSave(project, e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleSelectionOrderSave(project, (e.currentTarget as HTMLInputElement).value)
+                        }
+                      }}
+                      placeholder="-"
+                      className="w-16 h-9 text-center text-xs font-black border border-slate-200 rounded-lg bg-white focus:outline-none focus:border-[#ffb400]"
+                    />
+                  </label>
+                )
+              })}
             </div>
           </div>
         </div>
