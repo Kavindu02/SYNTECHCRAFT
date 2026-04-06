@@ -21,6 +21,10 @@ interface Project {
 
 const MAX_IMAGE_DIMENSION = 1400
 const OUTPUT_IMAGE_QUALITY = 0.74
+const MIN_IMAGE_QUALITY = 0.46
+const MAX_OPTIMIZATION_ATTEMPTS = 6
+const TARGET_INLINE_IMAGE_CHARS = 280_000
+const MIN_LONGEST_EDGE = 640
 const DEFAULT_PROJECT_IMAGE_PATH = '/images/projects/default.png'
 
 function readFileAsDataUrl(file: File): Promise<string> {
@@ -63,25 +67,49 @@ async function optimizeImageForStorage(file: File): Promise<string> {
   const longestEdge = Math.max(originalWidth, originalHeight)
   const scale = longestEdge > MAX_IMAGE_DIMENSION ? MAX_IMAGE_DIMENSION / longestEdge : 1
 
-  const targetWidth = Math.max(1, Math.round(originalWidth * scale))
-  const targetHeight = Math.max(1, Math.round(originalHeight * scale))
+  let targetWidth = Math.max(1, Math.round(originalWidth * scale))
+  let targetHeight = Math.max(1, Math.round(originalHeight * scale))
+  let quality = OUTPUT_IMAGE_QUALITY
+  let bestDataUrl = originalDataUrl
 
-  const canvas = document.createElement('canvas')
-  canvas.width = targetWidth
-  canvas.height = targetHeight
+  for (let attempt = 0; attempt < MAX_OPTIMIZATION_ATTEMPTS; attempt += 1) {
+    const canvas = document.createElement('canvas')
+    canvas.width = targetWidth
+    canvas.height = targetHeight
 
-  const context = canvas.getContext('2d')
-  if (!context) {
-    return originalDataUrl
+    const context = canvas.getContext('2d')
+    if (!context) {
+      return bestDataUrl
+    }
+
+    context.drawImage(image, 0, 0, targetWidth, targetHeight)
+
+    try {
+      const compressed = canvas.toDataURL('image/webp', quality)
+      bestDataUrl = compressed
+
+      if (compressed.length <= TARGET_INLINE_IMAGE_CHARS) {
+        return compressed
+      }
+    } catch {
+      return bestDataUrl
+    }
+
+    quality = Math.max(MIN_IMAGE_QUALITY, quality - 0.08)
+
+    const longestEdge = Math.max(targetWidth, targetHeight)
+    if (longestEdge <= MIN_LONGEST_EDGE && quality <= MIN_IMAGE_QUALITY) {
+      break
+    }
+
+    if (longestEdge > MIN_LONGEST_EDGE) {
+      const shrinkRatio = 0.86
+      targetWidth = Math.max(1, Math.round(targetWidth * shrinkRatio))
+      targetHeight = Math.max(1, Math.round(targetHeight * shrinkRatio))
+    }
   }
 
-  context.drawImage(image, 0, 0, targetWidth, targetHeight)
-
-  try {
-    return canvas.toDataURL('image/webp', OUTPUT_IMAGE_QUALITY)
-  } catch {
-    return originalDataUrl
-  }
+  return bestDataUrl
 }
 
 function asProjectsArray(value: unknown): Project[] {

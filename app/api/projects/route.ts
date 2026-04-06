@@ -76,7 +76,7 @@ type ProjectResponse = {
 
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'no-store';
 const DEFAULT_PROJECT_IMAGE_PATH = '/images/projects/default.png';
-const MAX_LITE_INLINE_IMAGE_CHARS = 120_000;
+const MAX_LITE_INLINE_IMAGE_CHARS = 600_000;
 const PROJECT_IMAGE_UPLOADS_PUBLIC_PREFIX = '/images/projects/uploads/';
 const PROJECT_IMAGE_UPLOADS_DIR = join(
   process.cwd(),
