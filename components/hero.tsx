@@ -140,7 +140,7 @@ const Hero = () => {
   ]
 
   return (
-    <section className="relative min-h-screen overflow-hidden flex items-center pt-32 pb-16 lg:pt-20 lg:pb-0">
+    <section className="relative min-h-screen overflow-hidden flex items-center pt-24 pb-8 lg:pt-20 lg:pb-0">
       {/* Background with Subtle Modern texture & Image */}
       <div className="absolute inset-0 z-0">
         <div className="absolute inset-0 bg-white z-10 opacity-70"></div>

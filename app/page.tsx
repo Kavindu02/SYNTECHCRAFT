@@ -215,7 +215,7 @@ export default function Home() {
       </div>
 
       {/* Trusted By / Logo Cloud - TRULY MODERN ADDITION */}
-      <section className="py-20 md:py-32 border-b border-slate-100 bg-[#FAF9F6] overflow-hidden relative flex flex-col justify-center">
+      <section className="py-12 md:py-20 border-b border-slate-100 bg-[#FAF9F6] overflow-hidden relative flex flex-col justify-center">
         {/* Background Watermark Text */}
         <div className="absolute top-[65%] left-[48%] -translate-x-1/2 -translate-y-1/2 font-black text-[11vw] leading-none tracking-normal text-slate-900/[0.03] whitespace-nowrap pointer-events-none select-none italic z-0 overflow-hidden w-full text-center scale-y-125">
           SYNTECHCRAFT
@@ -267,7 +267,7 @@ export default function Home() {
       </section>
 
       {/* About Section - ENHANCED MODERN */}
-      <section id="about" className="py-24 md:py-40 px-6 md:px-8 max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-32 items-center relative">
+      <section id="about" className="py-16 md:py-28 px-6 md:px-8 max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 lg:gap-32 items-center relative">
         <div className="absolute top-1/2 left-0 -translate-x-1/2 -translate-y-1/2 w-48 md:w-64 h-48 md:h-64 bg-[#ffb400]/5 blur-[80px] md:blur-[120px] rounded-full"></div>
 
         <div className="relative order-2 lg:order-1">
@@ -351,7 +351,7 @@ export default function Home() {
       </section>
 
       {/* TRULY MODERN Stats Section - Clean & Typographic */}
-      <section className="relative py-16 md:py-20 overflow-hidden bg-[#0a0a0a]">
+      <section className="relative py-10 md:py-14 overflow-hidden bg-[#0a0a0a]">
         {/* Cinematic Background */}
         <div className="absolute inset-0 z-0">
           <motion.img
@@ -420,7 +420,7 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-24 md:py-40 px-6 md:px-8 relative overflow-hidden bg-[#FAF9F6]">
+      <section id="services" className="py-16 md:py-28 px-6 md:px-8 relative overflow-hidden bg-[#FAF9F6]">
         {/* Modern Background Elements - Noise & Grid */}
         <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(rgba(0,0,0,0.4)_0.5px,transparent_0.5px)] [background-size:3px_3px]"></div>
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:40px_40px] opacity-40"></div>
@@ -512,12 +512,12 @@ export default function Home() {
       </section>
 
       {/* Solutions / Portfolio Section */}
-      <section id="portfolio" className="py-24 md:py-40 px-6 md:px-8 bg-[#FAF9F6] overflow-hidden relative">
+      <section id="portfolio" className="py-16 md:py-28 px-6 md:px-8 bg-[#FAF9F6] overflow-hidden relative">
         {/* Subtle decorative background element */}
         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(#ffb400_0.7px,transparent_0.7px)] [background-size:32px_32px] opacity-[0.08]"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex flex-col md:flex-row items-center justify-between mb-16 md:mb-32 gap-4 md:gap-6">
+          <div className="flex flex-col md:flex-row items-center justify-between mb-12 md:mb-20 gap-4 md:gap-6">
             <div className="flex flex-col items-start text-left flex-1">
               <div className="flex items-center gap-4 justify-start w-full">
                 <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
@@ -620,7 +620,7 @@ export default function Home() {
       </section>
 
       {/* Contact Section */}
-      <section id="contact" className="py-24 md:py-40 px-6 md:px-8 relative overflow-hidden">
+      <section id="contact" className="py-16 md:py-28 px-6 md:px-8 relative overflow-hidden">
         {/* Background Image for Contact */}
         <div className="absolute inset-0 z-0">
           <img
@@ -634,7 +634,7 @@ export default function Home() {
         <div className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-[#ffb400] opacity-10 blur-[100px] md:blur-[150px] -translate-y-1/2 translate-x-1/2 rounded-full z-0"></div>
 
         <div className="max-w-7xl mx-auto grid lg:grid-cols-3 gap-16 lg:gap-24 relative z-10">
-          <div className="lg:col-span-1 flex flex-col gap-12 md:gap-20">
+          <div className="lg:col-span-1 flex flex-col gap-8 md:gap-14">
             <div className="flex flex-col gap-6 md:gap-8">
               <div className="flex items-center gap-4">
                 <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
@@ -657,7 +657,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-col gap-6 md:gap-8">
+            <div className="flex flex-col gap-4 md:gap-6">
               {[
                 { icon: MapPin, title: 'Company', val: 'Colombo, Sri Lanka', color: 'bg-slate-500/10' },
                 { icon: Phone, title: 'Call Us', val: '+94 74 2216 579', color: 'bg-slate-500/10' },
@@ -689,7 +689,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="footer" className="bg-slate-950 pt-24 md:pt-40 pb-16 md:pb-20 px-6 md:px-8 relative overflow-hidden text-white">
+      <footer id="footer" className="bg-slate-950 pt-16 md:pt-28 pb-10 md:pb-14 px-6 md:px-8 relative overflow-hidden text-white">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-[#ffb400]/5 -z-0 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/4"></div>
         <div className="absolute bottom-0 left-0 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-[#ffb400]/5 -z-0 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
 
