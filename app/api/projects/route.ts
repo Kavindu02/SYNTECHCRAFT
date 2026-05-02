@@ -519,52 +519,7 @@ export async function GET(request: Request) {
       });
     }
 
-    const rows = liteMode
-      ? await projects
-          .aggregate<Partial<ProjectDocument>>([
-            { $sort: { id: -1, _id: -1 } },
-            {
-              $project: {
-                _id: 1,
-                id: 1,
-                title: 1,
-                cat: 1,
-                desc: 1,
-                tags: 1,
-                link: 1,
-                showOnHome: 1,
-                homeSelectionOrder: 1,
-                img: {
-                  $let: {
-                    vars: {
-                      imgValue: '$img',
-                      imgType: { $type: '$img' },
-                    },
-                    in: {
-                      $cond: [
-                        { $eq: ['$$imgType', 'string'] },
-                        {
-                          $cond: [
-                            {
-                              $and: [
-                                { $regexMatch: { input: '$$imgValue', regex: '^data:image/' } },
-                                { $gt: [{ $strLenCP: '$$imgValue' }, MAX_LITE_INLINE_IMAGE_CHARS] },
-                              ],
-                            },
-                            DEFAULT_PROJECT_IMAGE_PATH,
-                            '$$imgValue',
-                          ],
-                        },
-                        DEFAULT_PROJECT_IMAGE_PATH,
-                      ],
-                    },
-                  },
-                },
-              },
-            },
-          ])
-          .toArray()
-      : await projects.find().sort({ id: -1, _id: -1 }).toArray();
+    const rows = await projects.find().sort({ id: -1, _id: -1 }).toArray();
 
     const response = rows.map((project, index) =>
       normalizeProjectForResponse(project, rows.length - index, { liteMode })
@@ -572,7 +527,7 @@ export async function GET(request: Request) {
 
     return createProjectsResponse(response);
   } catch (error) {
-    console.error('[api/projects][GET] Database read failed.', error);
+    console.error('[api/projects][GET] Database read failed:', error);
     const summary = getDatabaseErrorSummary(error);
 
     return NextResponse.json(
