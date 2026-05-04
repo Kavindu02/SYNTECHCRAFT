@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X } from 'lucide-react'
+import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X, Pause, Play } from 'lucide-react'
 
 interface Project {
   _id?: string;
@@ -17,6 +17,7 @@ interface Project {
   link?: string;
   showOnHome?: boolean;
   homeSelectionOrder?: number | null;
+  isPaused?: boolean;
 }
 
 const MAX_IMAGE_DIMENSION = 1400
@@ -134,6 +135,7 @@ function asProjectsArray(value: unknown): Project[] {
         typeof candidate.homeSelectionOrder === 'number' && Number.isInteger(candidate.homeSelectionOrder)
           ? candidate.homeSelectionOrder
           : null,
+      isPaused: Boolean(candidate.isPaused),
     }
   })
 }
@@ -212,6 +214,7 @@ export default function AdminProjectsPage() {
     link: '',
     showOnHome: false,
     homeSelectionOrder: null,
+    isPaused: false,
   })
   const [tagInput, setTagInput] = useState('')
   const router = useRouter()
@@ -322,7 +325,7 @@ export default function AdminProjectsPage() {
   }
 
   const resetForm = () => {
-    setNewProject({ _id: '', title: '', cat: '', desc: '', tags: [], img: '', link: '', showOnHome: false, homeSelectionOrder: null })
+    setNewProject({ _id: '', title: '', cat: '', desc: '', tags: [], img: '', link: '', showOnHome: false, homeSelectionOrder: null, isPaused: false })
     setOriginalEditImage('')
     setTagInput('')
     setShowAddForm(false)
@@ -395,6 +398,28 @@ export default function AdminProjectsPage() {
       alert('An error occurred while deleting the project')
     }
   }
+
+  const handleTogglePause = async (project: Project) => {
+    try {
+      const updatedProject = { ...project, isPaused: !project.isPaused };
+      const res = await fetch('/api/projects', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedProject),
+      });
+
+      if (res.ok) {
+        setProjects((current) =>
+          current.map((p) => (hasSameProjectIdentity(p, project) ? updatedProject : p))
+        );
+      } else {
+        alert('Failed to update project status');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('An error occurred while updating project status');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafa]">
@@ -579,7 +604,19 @@ export default function AdminProjectsPage() {
                   <div className="absolute top-6 left-6 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/50">
                     <span className="text-black font-black text-[8px] uppercase tracking-widest leading-none">{proj.cat}</span>
                   </div>
+                  {proj.isPaused && (
+                    <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-500/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-red-500/50">
+                      <span className="text-white font-black text-[8px] uppercase tracking-widest leading-none">Paused</span>
+                    </div>
+                  )}
                   <div className="absolute top-4 md:top-6 right-4 md:right-6 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => handleTogglePause(proj)}
+                      className="p-2.5 md:p-3 bg-white text-black hover:bg-[#ffb400] rounded-xl shadow-lg transition-colors"
+                      title={proj.isPaused ? "Unpause Project" : "Pause Project"}
+                    >
+                      {proj.isPaused ? <Play size={16} /> : <Pause size={16} />}
+                    </button>
                     <button
                       onClick={() => handleEditClick(proj)}
                       disabled={isEditPreparing}

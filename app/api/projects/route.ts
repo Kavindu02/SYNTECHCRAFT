@@ -19,6 +19,7 @@ const projectSchema = z.object({
   link: z.string().trim().optional().default(''),
   showOnHome: z.boolean().optional().default(false),
   homeSelectionOrder: z.number().int().min(1).nullable().optional(),
+  isPaused: z.boolean().optional().default(false),
 });
 
 const projectIdentitySchema = z
@@ -57,6 +58,7 @@ type ProjectDocument = {
   link: string;
   showOnHome: boolean;
   homeSelectionOrder: number | null;
+  isPaused?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -72,6 +74,7 @@ type ProjectResponse = {
   link: string;
   showOnHome: boolean;
   homeSelectionOrder: number | null;
+  isPaused?: boolean;
 };
 
 const PROJECTS_RESPONSE_CACHE_CONTROL = 'no-store';
@@ -336,6 +339,7 @@ function normalizeProjectForResponse(
       project.homeSelectionOrder >= 1
         ? project.homeSelectionOrder
         : null,
+    isPaused: Boolean(project.isPaused),
   };
 }
 
@@ -578,6 +582,7 @@ export async function POST(request: Request) {
     link: (project.link || '').trim(),
     showOnHome: Boolean(project.showOnHome),
     homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
+    isPaused: Boolean(project.isPaused),
   };
 
   if (
@@ -606,6 +611,7 @@ export async function POST(request: Request) {
       link: normalizedProject.link || '',
       showOnHome: Boolean(normalizedProject.showOnHome),
       homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
+      isPaused: normalizedProject.isPaused,
       createdAt: now,
       updatedAt: now,
     });
@@ -677,6 +683,7 @@ export async function PUT(request: Request) {
     link: (project.link || '').trim(),
     showOnHome: Boolean(project.showOnHome),
     homeSelectionOrder: project.showOnHome ? project.homeSelectionOrder ?? null : null,
+    isPaused: Boolean(project.isPaused),
   };
 
   const normalizedImage = (project.img || '').trim() || DEFAULT_PROJECT_IMAGE_PATH;
@@ -730,6 +737,7 @@ export async function PUT(request: Request) {
       link: normalizedProject.link || '',
       showOnHome: Boolean(normalizedProject.showOnHome),
       homeSelectionOrder: normalizedProject.homeSelectionOrder ?? null,
+      isPaused: normalizedProject.isPaused,
       updatedAt: new Date(),
     };
 

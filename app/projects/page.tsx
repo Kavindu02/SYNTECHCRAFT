@@ -18,6 +18,7 @@ interface Project {
   link?: string;
   showOnHome?: boolean;
   homeSelectionOrder?: number | null;
+  isPaused?: boolean;
 }
 
 function sortProjects(data: Project[]) {
@@ -58,6 +59,7 @@ function asProjectsArray(value: unknown): Project[] {
         typeof candidate.homeSelectionOrder === "number" && Number.isInteger(candidate.homeSelectionOrder)
           ? candidate.homeSelectionOrder
           : null,
+      isPaused: Boolean(candidate.isPaused),
     };
   });
 }
@@ -96,7 +98,7 @@ export default function ProjectsPage() {
         });
         if (!response.ok) return;
         const data = await response.json();
-        const projectsData = extractProjects(data);
+        const projectsData = extractProjects(data).filter(p => !p.isPaused);
         setProjects(sortProjects(projectsData));
       } catch {
       } finally {

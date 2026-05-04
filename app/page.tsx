@@ -18,6 +18,7 @@ interface Project {
   link?: string
   showOnHome?: boolean
   homeSelectionOrder?: number | null
+  isPaused?: boolean
 }
 
 function asProjectsArray(value: unknown): Project[] {
@@ -41,6 +42,7 @@ function asProjectsArray(value: unknown): Project[] {
         typeof candidate.homeSelectionOrder === 'number' && Number.isInteger(candidate.homeSelectionOrder)
           ? candidate.homeSelectionOrder
           : null,
+      isPaused: Boolean(candidate.isPaused),
     }
   })
 }
@@ -66,11 +68,12 @@ function extractProjects(value: unknown): Project[] {
 }
 
 function getHomeProjects(data: Project[]) {
-  const selectedForHome = data
+  const unpausedData = data.filter(p => !p.isPaused);
+  const selectedForHome = unpausedData
     .filter((project) => Boolean(project.showOnHome))
     .sort((a, b) => (a.homeSelectionOrder ?? 99) - (b.homeSelectionOrder ?? 99))
 
-  return selectedForHome.length > 0 ? selectedForHome.slice(0, 9) : data.slice(0, 9)
+  return selectedForHome.length > 0 ? selectedForHome.slice(0, 9) : unpausedData.slice(0, 9)
 }
 
 
