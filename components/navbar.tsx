@@ -84,6 +84,7 @@ const Navbar = () => {
         {/* Mobile Toggle */}
         <div className="flex items-center gap-3 lg:hidden">
           <button 
+            suppressHydrationWarning
             className="w-10 h-10 md:w-12 md:h-12 rounded-xl md:rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-900 hover:bg-[#ffb400] transition-all"
             onClick={() => setIsOpen(!isOpen)}
           >

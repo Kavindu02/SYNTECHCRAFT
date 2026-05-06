@@ -605,8 +605,10 @@ export default function AdminProjectsPage() {
                     <span className="text-black font-black text-[8px] uppercase tracking-widest leading-none">{proj.cat}</span>
                   </div>
                   {proj.isPaused && (
-                    <div className="absolute top-6 left-1/2 -translate-x-1/2 bg-red-500/90 backdrop-blur-md px-3 py-1.5 rounded-xl border border-red-500/50">
-                      <span className="text-white font-black text-[8px] uppercase tracking-widest leading-none">Paused</span>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="bg-red-500/90 backdrop-blur-md px-4 py-2 rounded-xl border border-red-500/50">
+                        <span className="text-white font-black text-[9px] uppercase tracking-widest leading-none">Paused</span>
+                      </div>
                     </div>
                   )}
                   <div className="absolute top-4 md:top-6 right-4 md:right-6 flex gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
