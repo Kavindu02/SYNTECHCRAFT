@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X, Pause, Play } from 'lucide-react'
+import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X, Pause, Play, Users } from 'lucide-react'
 
 interface Project {
   _id?: string;
@@ -430,6 +430,7 @@ export default function AdminProjectsPage() {
         <div className="flex md:flex-col gap-4 md:gap-8 md:flex-grow items-center">
           <Link href="/admin/dashboard" className="text-white/70 p-2.5 md:p-4 rounded-xl md:rounded-2xl hover:bg-white/10 transition-colors"><LayoutDashboard size={20} className="md:w-6 md:h-6" /></Link>
           <Link href="/admin/projects" className="text-[#ffb400] p-2.5 md:p-4 rounded-xl md:rounded-2xl bg-white/10 shadow-lg"><FolderKanban size={20} className="md:w-6 md:h-6" /></Link>
+          <Link href="/admin/visitors" className="text-white/70 p-2.5 md:p-4 rounded-xl md:rounded-2xl hover:bg-white/10 transition-colors"><Users size={20} className="md:w-6 md:h-6" /></Link>
         </div>
         <button onClick={handleLogout} className="text-slate-500 hover:text-red-500 transition-colors md:mb-4 p-2.5 md:p-0"><LogOut size={20} className="md:w-6 md:h-6" /></button>
       </nav>
