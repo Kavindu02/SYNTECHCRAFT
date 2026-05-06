@@ -458,7 +458,13 @@ export default function Home() {
                   { id: '02', t: 'Visionary Design', d: 'UI that dictates market trends.' }
                 ].map((item) => (
                   <div key={item.id} className="group flex items-start gap-6 p-6 rounded-[24px] md:rounded-[32px] bg-white border border-slate-100 hover:border-[#ffb400]/50 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-[#ffb400]/5">
-                    <div className="text-2xl md:text-3xl font-black text-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors italic leading-none">{item.id}</div>
+                    <motion.span
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#ffb400]/40 text-[#ffb400] bg-white shadow-sm"
+                      animate={{ scale: [1, 1.12, 1], y: [0, -2, 0] }}
+                      transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
+                    >
+                      <CheckCircle2 size={14} />
+                    </motion.span>
                     <div>
                       <h4 className="font-black text-[10px] md:text-[11px] uppercase tracking-widest text-slate-900 mb-1">{item.t}</h4>
                       <p className="text-slate-400 text-[9px] md:text-[10px] font-bold uppercase tracking-tight">{item.d}</p>
@@ -469,7 +475,7 @@ export default function Home() {
             </div>
 
             {/* Right Side Services Grid */}
-            <div className="lg:col-span-12 xl:col-span-6 grid sm:grid-cols-2 gap-6">
+            <div className="lg:col-span-12 xl:col-span-6 grid sm:grid-cols-2 gap-6 mt-14 md:mt-24">
               {serviceList.map((service, index) => (
                 <motion.div
                   key={index}
@@ -477,21 +483,13 @@ export default function Home() {
                   initial={{ opacity: 0, y: 40 }}
                   viewport={{ once: true }}
                   transition={{ delay: index * 0.1, duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-                  className="group relative bg-white p-6 md:p-8 rounded-[30px] md:rounded-[40px] border border-slate-100/80 shadow-2xl shadow-slate-200/50 hover:shadow-3xl hover:shadow-[#ffb400]/10 transition-all duration-700 flex flex-col items-start overflow-hidden"
+                  className="group relative bg-white/85 p-6 md:p-8 rounded-[28px] md:rounded-[36px] border border-slate-200/70 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] hover:border-[#ffb400]/40 hover:shadow-[0_30px_80px_-24px_rgba(255,180,0,0.25)] transition-all duration-700 flex flex-col items-start overflow-hidden backdrop-blur-sm hover:-translate-y-1"
                 >
                   {/* Hover background impact */}
-                  <div className="absolute top-0 left-0 w-full h-full bg-[#ffb400]/0 group-hover:bg-[#ffb400]/[0.02] transition-colors duration-700 pointer-events-none"></div>
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#ffb400]/12 via-transparent to-transparent opacity-70 pointer-events-none"></div>
 
                   {/* Decorative Gradient Glow */}
-                  <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-[#ffb400]/0 group-hover:bg-[#ffb400]/10 blur-[80px] rounded-full transition-all duration-1000"></div>
-
-                  {/* Icon Container with Advanced Animation */}
-                  <div className="relative mb-6 md:mb-8">
-                    <div className="absolute inset-0 bg-[#ffb400] blur-2xl opacity-0 group-hover:opacity-20 transition-opacity duration-700 rounded-full"></div>
-                    <div className="w-14 h-14 md:w-16 md:h-16 bg-slate-50 rounded-xl md:rounded-2xl flex items-center justify-center border border-slate-100 group-hover:border-[#ffb400]/50 group-hover:bg-white group-hover:rotate-[15deg] group-hover:scale-110 transition-all duration-700 relative z-10">
-                      <service.icon size={24} className="text-slate-900 group-hover:text-[#ffb400] transition-colors duration-500" />
-                    </div>
-                  </div>
+                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-[#ffb400]/20 blur-[90px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
 
                   <div className="relative z-10 flex flex-col items-start gap-3">
                     <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase italic group-hover:text-[#ffb400] transition-colors duration-500 leading-tight">
@@ -504,7 +502,7 @@ export default function Home() {
                   </div>
 
                   {/* Top Right Corner Number Accent */}
-                  <div className="absolute top-6 md:top-8 right-6 md:right-8 text-4xl md:text-5xl font-black italic text-slate-50 pointer-events-none group-hover:text-[#ffb400]/10 transition-colors duration-700">
+                  <div className="absolute top-6 md:top-8 right-6 md:right-8 text-4xl md:text-5xl font-black italic text-slate-200/70 pointer-events-none group-hover:text-[#ffb400]/20 transition-colors duration-700">
                     0{index + 1}
                   </div>
                 </motion.div>
