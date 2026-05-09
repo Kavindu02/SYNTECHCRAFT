@@ -3,8 +3,11 @@ import { getMongoDb } from '@/lib/mongodb';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const dateFilter = searchParams.get('date');
+    
     const db = await getMongoDb();
     
     // Total visits
@@ -22,10 +25,11 @@ export async function GET() {
     const uniqueVisitors = uniqueVisitorsResult.length > 0 ? uniqueVisitorsResult[0].count : 0;
 
     // Recent visits
+    const query = dateFilter ? { dateStr: dateFilter } : {};
     const recentVisits = await db.collection('analytics_visits')
-      .find({})
+      .find(query)
       .sort({ timestamp: -1 })
-      .limit(50)
+      .limit(500)
       .toArray();
 
     const formattedRecentVisits = recentVisits.map(visit => ({
@@ -34,6 +38,12 @@ export async function GET() {
       timestamp: visit.timestamp,
     }));
 
+    // Count for the filtered date if provided
+    let filteredCount = null;
+    if (dateFilter) {
+      filteredCount = await db.collection('analytics_visits').countDocuments({ dateStr: dateFilter });
+    }
+
     return NextResponse.json({
       success: true,
       data: {
@@ -41,6 +51,7 @@ export async function GET() {
         uniqueVisitors,
         todayVisits,
         recentVisits: formattedRecentVisits,
+        filteredCount,
       }
     });
   } catch (error) {

@@ -15,22 +15,26 @@ interface Stats {
   totalVisits: number;
   uniqueVisitors: number;
   todayVisits: number;
+  filteredCount: number | null;
   recentVisits: Visit[];
 }
 
 export default function VisitorsPage() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [searchDate, setSearchDate] = useState('')
   const router = useRouter()
 
   useEffect(() => {
-    fetchStats()
-  }, [])
+    fetchStats(searchDate)
+  }, [searchDate])
 
-  const fetchStats = async () => {
+  const fetchStats = async (date?: string) => {
     setIsLoading(true)
     try {
-      const res = await fetch('/api/analytics/stats', { cache: 'no-store' })
+      // If date is empty string or undefined, fetch all recent stats
+      const url = date ? `/api/analytics/stats?date=${date}` : '/api/analytics/stats'
+      const res = await fetch(url, { cache: 'no-store' })
       if (!res.ok) return
       const data = await res.json()
       if (data.success) {
@@ -69,7 +73,7 @@ export default function VisitorsPage() {
             <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px] mt-1">Website Traffic & Analytics</p>
           </div>
           <button
-            onClick={fetchStats}
+            onClick={() => fetchStats(searchDate)}
             className="bg-black text-white px-5 md:px-8 py-3 md:py-4 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-[#ffb400] hover:text-black transition-all text-center w-full sm:w-auto"
           >
             Refresh Data
@@ -98,11 +102,13 @@ export default function VisitorsPage() {
 
             <div className="bg-white border border-slate-100 rounded-2xl md:rounded-[28px] p-6 flex flex-col justify-between">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Today's Visits</h3>
+                <h3 className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">
+                  {searchDate ? `Visits on ${searchDate}` : "Today's Visits"}
+                </h3>
                 <div className="p-2 bg-orange-50 text-orange-500 rounded-lg"><CalendarDays size={18} /></div>
               </div>
               <p className="text-3xl md:text-4xl font-black text-slate-900">
-                {isLoading ? '-' : stats?.todayVisits || 0}
+                {isLoading ? '-' : (searchDate ? stats?.filteredCount : stats?.todayVisits) ?? 0}
               </p>
             </div>
           </div>
@@ -110,7 +116,26 @@ export default function VisitorsPage() {
           <div className="grid grid-cols-1 gap-6 md:gap-10">
             {/* Recent Visitors */}
             <div className="bg-white border border-slate-100 rounded-2xl md:rounded-[28px] p-6">
-              <h3 className="text-sm font-black uppercase tracking-[0.25em] text-slate-700 mb-6">Recent Visitors</h3>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                <h3 className="text-sm font-black uppercase tracking-[0.25em] text-slate-700">Recent Visitors</h3>
+                <div className="relative w-full sm:w-64">
+                  <CalendarDays className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                  <input
+                    type="date"
+                    value={searchDate}
+                    onChange={(e) => setSearchDate(e.target.value)}
+                    className="w-full pl-10 pr-24 py-2 bg-slate-50 border border-slate-100 rounded-xl text-xs font-bold text-slate-700 outline-none focus:border-[#ffb400] transition-colors"
+                  />
+                  {searchDate && (
+                    <button 
+                      onClick={() => setSearchDate('')}
+                      className="absolute right-9 top-1/2 -translate-y-1/2 bg-red-50 text-red-600 hover:bg-red-100 px-2 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all shadow-sm border border-red-100"
+                    >
+                      CLEAR
+                    </button>
+                  )}
+                </div>
+              </div>
               {isLoading ? (
                 <p className="text-sm text-slate-500">Loading...</p>
               ) : (
