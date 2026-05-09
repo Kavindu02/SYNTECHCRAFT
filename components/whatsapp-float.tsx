@@ -15,7 +15,7 @@ export const WhatsAppFloat = () => {
   const message = 'Hi there! I would like to know more about your services.'
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`
 
-  if (pathname === '/projects') return null
+  if (pathname === '/projects' || pathname?.startsWith('/admin')) return null
 
 
   return (
