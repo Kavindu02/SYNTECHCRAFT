@@ -150,6 +150,15 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
 export default function Home() {
   // Only show the first 9 projects on the home page
   const [projectsList, setProjectsList] = useState<Project[]>([])
+  const [activePoint, setActivePoint] = useState(0)
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActivePoint((prev) => (prev + 1) % 4)
+    }, 2500)
+    return () => clearInterval(interval)
+  }, [])
+
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -335,14 +344,30 @@ export default function Home() {
             ].map((item, idx) => (
               <div key={idx} className="flex flex-col gap-2 md:gap-3 group">
                 <div className="flex items-center gap-4">
-                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-[#ffb400] transition-all">
-                    <CheckCircle2 size={18} className="text-[#ffb400] group-hover:text-black" />
-                  </div>
+                  <motion.div
+                    animate={activePoint === idx ? { 
+                      scale: [1, 1.15, 1.1],
+                      backgroundColor: '#ffb400',
+                      boxShadow: '0 0 20px rgba(255, 180, 0, 0.3)'
+                    } : { 
+                      scale: 1,
+                      backgroundColor: 'rgb(248, 250, 252)', // slate-50
+                      boxShadow: '0 0 0px rgba(255, 180, 0, 0)'
+                    }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center group-hover:bg-[#ffb400] transition-colors"
+                  >
+                    <CheckCircle2 
+                      size={18} 
+                      className={`transition-colors duration-500 ${activePoint === idx ? 'text-black' : 'text-[#ffb400]'} group-hover:text-black`} 
+                    />
+                  </motion.div>
                   <h4 className="font-black text-[11px] md:text-[12px] uppercase tracking-widest text-slate-900">{item.t}</h4>
                 </div>
                 <p className="text-slate-400 text-[10px] md:text-xs font-medium pl-12 md:pl-14">{item.d}</p>
               </div>
             ))}
+
           </div>
 
           <div className="pt-4 md:pt-8 flex">

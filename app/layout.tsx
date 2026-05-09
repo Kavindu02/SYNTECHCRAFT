@@ -8,6 +8,8 @@ import { ScrollToTop } from '@/components/scroll-to-top'
 import { InitialLoader } from '@/components/initial-loader'
 import { RouteTransitionLoader } from '@/components/route-transition-loader'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
+import { WhatsAppFloat } from '@/components/whatsapp-float'
+
 
 const geistSans = Geist({
   subsets: ['latin'],
@@ -128,7 +130,9 @@ export default function RootLayout({
         {children}
         <Toaster />
         <ScrollToTop />
+        <WhatsAppFloat />
       </body>
+
     </html>
   )
 }
