@@ -211,7 +211,7 @@ const Hero = () => {
               transition={{ delay: 0.4 }}
               className="text-lg md:text-xl text-slate-500 max-w-xl leading-relaxed font-medium"
             >
-              SYNTECHCRAFT combines intuitive UI/UX design with high-performance web and enterprise engineering to build scalable digital products that transform businesses.
+              SYNTECHCRAFT Combines Intuitive UI/UX Design with High Performance Web and Enterprise Engineering to Build Scalable Digital Products that Transform Businesses.
             </motion.p>
 
             <motion.div 
