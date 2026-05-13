@@ -30,12 +30,12 @@ export const WhatsAppFloat = () => {
         <motion.div
           animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
           transition={{ duration: 2, repeat: Infinity }}
-          className="absolute inset-0 bg-[#25D366] rounded-full"
+          className="absolute inset-0 bg-[#ffb400] rounded-full"
         />
         <motion.div
           animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0, 0.2] }}
           transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-          className="absolute inset-0 bg-[#25D366] rounded-full"
+          className="absolute inset-0 bg-[#ffb400] rounded-full"
         />
         
         <motion.a
@@ -44,7 +44,7 @@ export const WhatsAppFloat = () => {
           rel="noopener noreferrer"
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
-          className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-[#25D366] rounded-full shadow-[0_10px_30px_rgba(37,211,102,0.4)] text-white group"
+          className="relative flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-black rounded-full shadow-[0_10px_30px_rgba(0,0,0,0.3)] text-[#ffb400] group"
         >
           <svg 
             viewBox="0 0 24 24" 
