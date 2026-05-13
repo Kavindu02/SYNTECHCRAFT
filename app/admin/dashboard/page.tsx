@@ -184,7 +184,7 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-[#fafafa]">
       {/* Sidebar Nav */}
       <nav className="fixed bottom-0 left-0 right-0 h-16 md:h-full md:w-24 md:left-0 md:right-auto md:top-0 bg-black flex md:flex-col items-center justify-around md:justify-start md:py-10 gap-4 md:gap-12 z-50 px-4 md:px-0">
-        <Link href="/" className="flex bg-[#ffb400] p-2 rounded-xl items-center justify-center">
+        <Link href="/" target="_blank" className="flex bg-[#ffb400] p-2 rounded-xl items-center justify-center">
           <img src="/logo.png" alt="Syntechcraft Logo" className="w-6 h-6 md:w-8 md:h-8 object-contain" />
         </Link>
         <div className="flex md:flex-col gap-4 md:gap-8 md:flex-grow items-center">
