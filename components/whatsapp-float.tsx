@@ -19,7 +19,7 @@ export const WhatsAppFloat = () => {
 
 
   return (
-    <div className="fixed bottom-6 left-4 md:bottom-4 md:left-6 z-[100] flex flex-col items-start">
+    <div className="fixed bottom-4 left-1 md:bottom-2 md:left-2 z-[100] flex flex-col items-start">
 
 
 
