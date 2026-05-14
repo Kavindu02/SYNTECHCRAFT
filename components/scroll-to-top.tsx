@@ -32,18 +32,34 @@ export const ScrollToTop = () => {
   return (
     <AnimatePresence>
       {isVisible && (
-        <motion.button
+        <motion.div
           initial={{ opacity: 0, scale: 0.5, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.5, y: 20 }}
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 md:bottom-8 md:right-8 z-[90] w-12 h-12 md:w-14 md:h-14 bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-[#ffb400] shadow-2xl hover:bg-[#ffb400] hover:text-black hover:scale-110 transition-all duration-300 group"
-
-
-          aria-label="Scroll to top"
+          className="fixed bottom-6 right-6 md:bottom-4 md:right-8 z-[90]"
         >
-          <ArrowUp size={20} className="md:size-6 group-hover:-translate-y-1 transition-transform" />
-        </motion.button>
+          <div className="relative">
+            {/* Ripple Effects */}
+            <motion.div
+              animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="absolute inset-0 bg-[#ffb400] rounded-full"
+            />
+            <motion.div
+              animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0, 0.2] }}
+              transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+              className="absolute inset-0 bg-[#ffb400] rounded-full"
+            />
+            
+            <button
+              onClick={scrollToTop}
+              className="relative w-12 h-12 md:w-14 md:h-14 bg-black border border-white/10 rounded-full flex items-center justify-center text-[#ffb400] shadow-2xl hover:bg-[#ffb400] hover:text-black hover:scale-110 transition-all duration-300 group"
+              aria-label="Scroll to top"
+            >
+              <ArrowUp size={20} className="md:size-6 group-hover:-translate-y-1 transition-transform" />
+            </button>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   )
