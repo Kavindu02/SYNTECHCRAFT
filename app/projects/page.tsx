@@ -6,6 +6,7 @@ import Navbar from "../../components/navbar";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { Home } from "lucide-react";
+import { motion } from "framer-motion";
 
 interface Project {
   _id?: string;
@@ -195,13 +196,33 @@ export default function ProjectsPage() {
         </div>
       </section>
       {/* Floating Home Button */}
-      <Link
-        href="/"
-        aria-label="Back to Home"
-        className="fixed bottom-6 left-6 md:bottom-8 md:left-8 z-[90] w-12 h-12 md:w-14 md:h-14 bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center text-[#ffb400] shadow-2xl hover:bg-[#ffb400] hover:text-black hover:scale-110 transition-all duration-300 group"
+      <motion.div
+        initial={{ opacity: 0, scale: 0.5, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="fixed bottom-6 left-4 md:bottom-4 md:left-6 z-[90]"
       >
-        <Home size={28} strokeWidth={2.5} />
-      </Link>
+        <div className="relative">
+          {/* Ripple Effects */}
+          <motion.div
+            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute inset-0 bg-[#ffb400] rounded-full"
+          />
+          <motion.div
+            animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0, 0.2] }}
+            transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+            className="absolute inset-0 bg-[#ffb400] rounded-full"
+          />
+          
+          <Link
+            href="/"
+            aria-label="Back to Home"
+            className="relative w-12 h-12 md:w-14 md:h-14 bg-black border border-white/10 rounded-full flex items-center justify-center text-[#ffb400] shadow-2xl hover:bg-[#ffb400] hover:text-black hover:scale-110 transition-all duration-300 group"
+          >
+            <Home size={28} strokeWidth={2.5} className="transition-transform group-hover:scale-110" />
+          </Link>
+        </div>
+      </motion.div>
     </main>
   );
 }
