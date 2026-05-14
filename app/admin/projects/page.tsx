@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X, Pause, Play, Users } from 'lucide-react'
+import { Plus, Trash2, LogOut, LayoutDashboard, FolderKanban, Globe, Tag, Image as ImageIcon, FileText, ChevronRight, Edit2, Link as LinkIcon, Upload, X, Pause, Play, Users, AlertTriangle } from 'lucide-react'
 
 interface Project {
   _id?: string;
@@ -217,6 +217,7 @@ export default function AdminProjectsPage() {
     isPaused: false,
   })
   const [tagInput, setTagInput] = useState('')
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -432,7 +433,7 @@ export default function AdminProjectsPage() {
           <Link href="/admin/projects" className="text-[#ffb400] p-2.5 md:p-4 rounded-xl md:rounded-2xl bg-white/10 shadow-lg"><FolderKanban size={20} className="md:w-6 md:h-6" /></Link>
           <Link href="/admin/visitors" className="text-white/70 p-2.5 md:p-4 rounded-xl md:rounded-2xl hover:bg-white/10 transition-colors"><Users size={20} className="md:w-6 md:h-6" /></Link>
         </div>
-        <button onClick={handleLogout} className="text-slate-500 hover:text-red-500 transition-colors md:mb-4 p-2.5 md:p-0"><LogOut size={20} className="md:w-6 md:h-6" /></button>
+        <button onClick={() => setShowLogoutConfirm(true)} className="text-slate-500 hover:text-red-500 transition-colors md:mb-4 p-2.5 md:p-0"><LogOut size={20} className="md:w-6 md:h-6" /></button>
       </nav>
 
       <main className="pb-20 md:pb-0 md:pl-24">
@@ -649,6 +650,51 @@ export default function AdminProjectsPage() {
           </div>
         </div>
       </main>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogoutConfirm(false)}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-[2rem] p-8 md:p-10 max-w-sm w-full shadow-2xl overflow-hidden"
+            >
+              <div className="absolute top-0 left-0 w-full h-2 bg-[#ffb400]" />
+              <div className="flex flex-col items-center text-center">
+                <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mb-6">
+                  <AlertTriangle size={40} className="text-red-500" />
+                </div>
+                <h3 className="text-2xl font-black text-slate-900 tracking-tighter uppercase italic mb-2">Confirm Logout</h3>
+                <p className="text-slate-500 font-medium text-sm mb-8 leading-relaxed">Are you sure you want to log out? You will need to sign in again to access the dashboard.</p>
+                
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    onClick={handleLogout}
+                    className="w-full bg-black text-white py-4 rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-red-600 transition-all shadow-lg shadow-black/10"
+                  >
+                    Yes, Logout
+                  </button>
+                  <button
+                    onClick={() => setShowLogoutConfirm(false)}
+                    className="w-full bg-slate-100 text-slate-900 py-4 rounded-xl font-black uppercase tracking-widest text-[11px] hover:bg-slate-200 transition-all"
+                  >
+                    No, Stay
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
