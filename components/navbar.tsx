@@ -6,25 +6,89 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ArrowRight } from 'lucide-react'
 
+const NAV_LINKS = [
+  { name: 'Home', href: '#home' },
+  { name: 'About', href: '#about' },
+  { name: 'Services', href: '#services' },
+  { name: 'Projects', href: '#portfolio' },
+]
+
+const SECTION_IDS = [...NAV_LINKS.map((link) => link.href.replace('#', '')), 'contact']
+
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const [activeSection, setActiveSection] = useState(SECTION_IDS[0])
   const navRef = useRef<HTMLElement | null>(null)
+  const autoScrollRef = useRef<{ id: string; targetTop: number } | null>(null)
 
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
-    }
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
+    let ticking = false
 
-  const navLinks = [
-    { name: 'Home', href: '#home' },
-    { name: 'About', href: '#about' },
-    { name: 'Services', href: '#services' },
-    { name: 'Projects', href: '#portfolio' },
-  ]
+    const updateActiveSection = () => {
+      const navOffset = navRef.current?.offsetHeight ?? 0
+      const activationOffset = navOffset + 120
+      let currentSection = SECTION_IDS[0]
+
+      for (const id of SECTION_IDS) {
+        const section = document.getElementById(id)
+        if (!section) continue
+
+        const top = section.getBoundingClientRect().top
+        if (top - activationOffset <= 0) {
+          currentSection = id
+        }
+      }
+
+      setActiveSection(currentSection)
+    }
+
+    const handleScroll = () => {
+      if (ticking) return
+      ticking = true
+      window.requestAnimationFrame(() => {
+        setScrolled(window.scrollY > 50)
+        const autoScroll = autoScrollRef.current
+
+        if (autoScroll) {
+          const section = document.getElementById(autoScroll.id)
+
+          if (!section) {
+            autoScrollRef.current = null
+            updateActiveSection()
+            ticking = false
+            return
+          }
+
+          const navOffset = navRef.current?.offsetHeight ?? 0
+          const activationOffset = navOffset + 120
+          const rect = section.getBoundingClientRect()
+          const nearTarget = Math.abs(window.scrollY - autoScroll.targetTop) <= 6
+          const inView = rect.top - activationOffset <= 0 && rect.bottom - activationOffset > 0
+
+          if (nearTarget || inView) {
+            autoScrollRef.current = null
+            setActiveSection(autoScroll.id)
+          }
+
+          ticking = false
+          return
+        }
+
+        updateActiveSection()
+        ticking = false
+      })
+    }
+
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('resize', handleScroll)
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('resize', handleScroll)
+    }
+  }, [])
 
   const handleAnchorClick = (
     event: React.MouseEvent<HTMLAnchorElement>,
@@ -35,6 +99,10 @@ const Navbar = () => {
 
     const targetId = href.startsWith('#') ? href.slice(1) : ''
     const target = targetId ? document.getElementById(targetId) : null
+
+    if (targetId) {
+      setActiveSection(targetId)
+    }
 
     if (shouldCloseMenu) {
       setIsOpen(false)
@@ -49,9 +117,13 @@ const Navbar = () => {
     const targetTop = target.getBoundingClientRect().top + window.scrollY
     const scrollTarget = Math.max(targetTop - navOffset - 12, 0)
 
+    autoScrollRef.current = { id: targetId, targetTop: scrollTarget }
+
     window.history.pushState(null, '', href)
     window.scrollTo({ top: scrollTarget, behavior: 'smooth' })
   }
+
+  const isContactActive = activeSection === 'contact'
 
   return (
     <nav 
@@ -80,21 +152,36 @@ const Navbar = () => {
 
         {/* Desktop Nav Links */}
         <div className="hidden lg:flex items-center gap-10">
-          {navLinks.map((link) => (
-            <Link 
-              key={link.name} 
-              href={link.href}
-              onClick={(event) => handleAnchorClick(event, link.href)}
-              className="relative text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-black transition-colors group"
-            >
-              {link.name}
-              <span className="absolute -bottom-2 left-0 w-0 h-[2px] bg-[#ffb400] transition-all group-hover:w-full"></span>
-            </Link>
-          ))}
+          {NAV_LINKS.map((link) => {
+            const linkId = link.href.slice(1)
+            const isActive = activeSection === linkId
+
+            return (
+              <Link 
+                key={link.name} 
+                href={link.href}
+                onClick={(event) => handleAnchorClick(event, link.href)}
+                className={`relative text-[10px] font-black uppercase tracking-[0.3em] transition-colors group ${
+                  isActive ? 'text-slate-900' : 'text-slate-500 hover:text-black'
+                }`}
+              >
+                {link.name}
+                <span
+                  className={`absolute -bottom-2 left-0 h-[2px] bg-[#ffb400] transition-all ${
+                    isActive ? 'w-full' : 'w-0 group-hover:w-full'
+                  }`}
+                ></span>
+              </Link>
+            )
+          })}
           <a 
             href="#contact" 
             onClick={(event) => handleAnchorClick(event, '#contact')}
-            className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 flex items-center gap-3"
+            className={`px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 ${
+              isContactActive
+                ? 'bg-[#ffb400] text-black shadow-[#ffb400]/20'
+                : 'bg-black text-white hover:bg-[#ffb400] hover:text-black shadow-black/10 hover:shadow-[#ffb400]/20'
+            }`}
           >
             Contact
             <ArrowRight size={14} />
@@ -161,22 +248,29 @@ const Navbar = () => {
             </div>
 
             <div className="flex flex-col gap-6 mb-auto">
-              {navLinks.map((link, idx) => (
-                <motion.div
-                  initial={{ x: 20, opacity: 0 }}
-                  animate={{ x: 0, opacity: 1 }}
-                  transition={{ delay: idx * 0.1 }}
-                  key={link.name}
-                >
-                  <Link 
-                    href={link.href}
-                    onClick={(event) => handleAnchorClick(event, link.href, true)}
-                    className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic hover:text-[#ffb400] transition-colors block"
+              {NAV_LINKS.map((link, idx) => {
+                const linkId = link.href.slice(1)
+                const isActive = activeSection === linkId
+
+                return (
+                  <motion.div
+                    initial={{ x: 20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: idx * 0.1 }}
+                    key={link.name}
                   >
-                    {link.name}
-                  </Link>
-                </motion.div>
-              ))}
+                    <Link 
+                      href={link.href}
+                      onClick={(event) => handleAnchorClick(event, link.href, true)}
+                      className={`text-4xl font-black tracking-tighter uppercase italic transition-colors block ${
+                        isActive ? 'text-[#ffb400]' : 'text-slate-900 hover:text-[#ffb400]'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  </motion.div>
+                )
+              })}
             </div>
 
             <div className="mt-10">
