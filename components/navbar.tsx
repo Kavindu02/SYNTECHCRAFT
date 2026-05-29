@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -9,6 +9,7 @@ import { Menu, X, ArrowRight } from 'lucide-react'
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
+  const navRef = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,15 +26,43 @@ const Navbar = () => {
     { name: 'Projects', href: '#portfolio' },
   ]
 
+  const handleAnchorClick = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+    shouldCloseMenu = false
+  ) => {
+    event.preventDefault()
+
+    const targetId = href.startsWith('#') ? href.slice(1) : ''
+    const target = targetId ? document.getElementById(targetId) : null
+
+    if (shouldCloseMenu) {
+      setIsOpen(false)
+    }
+
+    if (!target) {
+      window.location.hash = href
+      return
+    }
+
+    const navOffset = navRef.current?.offsetHeight ?? 0
+    const targetTop = target.getBoundingClientRect().top + window.scrollY
+    const scrollTarget = Math.max(targetTop - navOffset - 12, 0)
+
+    window.history.pushState(null, '', href)
+    window.scrollTo({ top: scrollTarget, behavior: 'smooth' })
+  }
+
   return (
     <nav 
+      ref={navRef}
       className={`fixed top-0 left-0 w-full z-[100] transition-all duration-300 ${
         scrolled ? 'py-4 bg-white shadow-xl border-b border-slate-100' : 'py-6 md:py-8 bg-transparent'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 md:px-8 flex items-center justify-between">
         {/* Logo */}
-        <Link href="#home" className="flex items-center gap-2 md:gap-3 group">
+        <Link href="#home" onClick={(event) => handleAnchorClick(event, '#home')} className="flex items-center gap-2 md:gap-3 group">
           <div className="relative w-10 h-10 md:w-12 md:h-12 group-hover:scale-110 transition-transform">
             <Image 
               src="/logo.png" 
@@ -55,6 +84,7 @@ const Navbar = () => {
             <Link 
               key={link.name} 
               href={link.href}
+              onClick={(event) => handleAnchorClick(event, link.href)}
               className="relative text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 hover:text-black transition-colors group"
             >
               {link.name}
@@ -63,6 +93,7 @@ const Navbar = () => {
           ))}
           <a 
             href="#contact" 
+            onClick={(event) => handleAnchorClick(event, '#contact')}
             className="bg-black text-white px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 flex items-center gap-3"
           >
             Contact
@@ -107,7 +138,7 @@ const Navbar = () => {
             className="fixed top-0 right-0 h-full w-[85%] max-w-sm bg-white z-[120] shadow-2xl lg:hidden p-12 flex flex-col"
           >
             <div className="flex justify-between items-center mb-16">
-              <Link href="#home" onClick={() => setIsOpen(false)} className="flex items-center gap-2 group">
+              <Link href="#home" onClick={(event) => handleAnchorClick(event, '#home', true)} className="flex items-center gap-2 group">
                 <div className="relative w-10 h-10">
                   <Image 
                     src="/logo.png" 
@@ -139,7 +170,7 @@ const Navbar = () => {
                 >
                   <Link 
                     href={link.href}
-                    onClick={() => setIsOpen(false)}
+                    onClick={(event) => handleAnchorClick(event, link.href, true)}
                     className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic hover:text-[#ffb400] transition-colors block"
                   >
                     {link.name}
@@ -203,7 +234,7 @@ const Navbar = () => {
               </div>
               <a 
                 href="#contact"
-                onClick={() => setIsOpen(false)}
+                onClick={(event) => handleAnchorClick(event, '#contact', true)}
                 className="w-full bg-[#ffb400] text-black font-black py-6 rounded-2xl text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all shadow-lg"
               >
                 Let&apos;s Talk <ArrowRight size={18} />
