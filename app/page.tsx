@@ -571,8 +571,11 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 md:gap-10">
             {projectsList.map((proj, index) => (
-              <motion.div
+              <motion.a
                 key={index}
+                href={proj.link || '#'}
+                target={proj.link ? "_blank" : "_self"}
+                rel="noopener noreferrer"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -614,20 +617,15 @@ export default function Home() {
                   </div>
 
                   <div className="pt-2 md:pt-4 mt-auto">
-                    <a
-                      href={proj.link || '#'}
-                      target={proj.link ? "_blank" : "_self"}
-                      rel="noopener noreferrer"
-                      className="w-full flex items-center justify-between bg-black text-white p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20"
-                    >
+                    <div className="w-full flex items-center justify-between bg-black text-white p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
                       <span className="flex items-center gap-3">
                         Launch Experience
                       </span>
                       <ArrowUpRight size={20} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                    </a>
+                    </div>
                   </div>
                 </div>
-              </motion.div>
+              </motion.a>
             ))}
             {/* Mobile only: View All Projects button below grid */}
             <div className="w-full flex justify-center mt-8 md:hidden">

@@ -130,8 +130,11 @@ export default function ProjectsPage() {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 md:gap-10">
           {projects.map((proj: Project, index: number) => (
-            <div
+            <a
               key={proj._id || proj.id || index}
+              href={proj.link || '#'}
+              target={proj.link ? "_blank" : "_self"}
+              rel="noopener noreferrer"
               className="group relative bg-slate-50/50 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
             >
               <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">
@@ -166,20 +169,15 @@ export default function ProjectsPage() {
                   ))}
                 </div>
                 <div className="pt-2 sm:pt-3 md:pt-4 mt-auto">
-                  <a
-                    href={proj.link || "#"}
-                    target={proj.link ? "_blank" : "_self"}
-                    rel="noopener noreferrer"
-                    className="w-full flex items-center justify-between bg-black text-white p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20"
-                  >
+                  <div className="w-full flex items-center justify-between bg-black text-white p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
                     <span className="flex items-center gap-2 sm:gap-3">
                       Launch Experience
                     </span>
                     <ArrowUpRight size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                  </a>
+                  </div>
                 </div>
               </div>
-            </div>
+            </a>
           ))}
         </div>
         {/* Mobile only: Back to Home button below projects grid */}
