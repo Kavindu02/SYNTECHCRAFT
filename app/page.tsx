@@ -147,6 +147,78 @@ function Counter({ value, suffix }: { value: number; suffix: string }) {
   )
 }
 
+// 3D Tilt + Gradient Glow Service Card
+function TiltServiceCard({ service, index }: { service: { title: string; desc: string; icon: React.ComponentType<{ size?: number; className?: string }> }; index: number }) {
+  const cardRef = useRef<HTMLDivElement>(null)
+
+  const handleMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+    const el = cardRef.current
+    if (!el) return
+    const { left, top, width, height } = el.getBoundingClientRect()
+    const x = (e.clientX - left) / width - 0.5
+    const y = (e.clientY - top) / height - 0.5
+    el.style.transform = `perspective(700px) rotateY(${x * 13}deg) rotateX(${y * -13}deg) scale3d(1.028,1.028,1.028)`
+    el.style.boxShadow = `${x * 26}px ${y * 26}px 55px -8px rgba(255,180,0,0.38), 0 28px 70px -18px rgba(255,180,0,0.22), inset 0 0 0 1.5px rgba(255,180,0,${Math.min(0.9, 0.28 + Math.abs(x) * 0.55 + Math.abs(y) * 0.55)})`
+    el.style.setProperty('--gx', `${(x + 0.5) * 100}%`)
+    el.style.setProperty('--gy', `${(y + 0.5) * 100}%`)
+  }
+
+  const handleMouseLeave = () => {
+    const el = cardRef.current
+    if (!el) return
+    el.style.transform = ''
+    el.style.boxShadow = ''
+  }
+
+  return (
+    <motion.div
+      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 40 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.1, duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
+      className="h-full"
+    >
+      <div
+        ref={cardRef}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          transition: 'transform 0.12s ease-out, box-shadow 0.38s ease',
+          transformStyle: 'preserve-3d',
+          willChange: 'transform',
+        }}
+        className="h-full group relative bg-white/85 p-6 md:p-8 rounded-[28px] md:rounded-[36px] border border-slate-200/70 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] flex flex-col items-start overflow-hidden backdrop-blur-sm"
+      >
+        {/* Mouse-tracked radial inner glow */}
+        <div
+          className="absolute inset-0 rounded-[28px] md:rounded-[36px] pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+          style={{ background: 'radial-gradient(circle at var(--gx,50%) var(--gy,50%), rgba(255,180,0,0.14) 0%, transparent 62%)' }}
+        />
+
+        {/* Corner ambient bloom */}
+        <div className="absolute -top-16 -right-16 w-56 h-56 bg-[#ffb400]/20 blur-[90px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
+
+        {/* Subtle base tint */}
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#ffb400]/10 via-transparent to-transparent opacity-70 pointer-events-none" />
+
+        <div className="relative z-10 flex flex-col items-start gap-3">
+          <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase italic group-hover:text-[#ffb400] transition-colors duration-500 leading-tight">
+            {service.title}
+          </h3>
+          <p className="text-slate-500 leading-relaxed text-xs md:text-sm font-medium opacity-80 group-hover:opacity-100 transition-opacity">
+            {service.desc}
+          </p>
+        </div>
+
+        {/* Corner number accent */}
+        <div className="absolute top-6 md:top-8 right-6 md:right-8 text-4xl md:text-5xl font-black italic text-slate-200/70 pointer-events-none group-hover:text-[#ffb400]/20 transition-colors duration-700">
+          0{index + 1}
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
 export default function Home() {
   // Only show the first 9 projects on the home page
   const [projectsList, setProjectsList] = useState<Project[]>([])
@@ -503,35 +575,7 @@ export default function Home() {
             {/* Right Side Services Grid */}
             <div className="lg:col-span-12 xl:col-span-6 grid sm:grid-cols-2 gap-6 mt-14 md:mt-24">
               {serviceList.map((service, index) => (
-                <motion.div
-                  key={index}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  initial={{ opacity: 0, y: 40 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1, duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
-                  className="group relative bg-white/85 p-6 md:p-8 rounded-[28px] md:rounded-[36px] border border-slate-200/70 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] hover:border-[#ffb400]/40 hover:shadow-[0_30px_80px_-24px_rgba(255,180,0,0.25)] transition-all duration-700 flex flex-col items-start overflow-hidden backdrop-blur-sm hover:-translate-y-1"
-                >
-                  {/* Hover background impact */}
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#ffb400]/12 via-transparent to-transparent opacity-70 pointer-events-none"></div>
-
-                  {/* Decorative Gradient Glow */}
-                  <div className="absolute -top-16 -right-16 w-56 h-56 bg-[#ffb400]/20 blur-[90px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-
-                  <div className="relative z-10 flex flex-col items-start gap-3">
-                    <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase italic group-hover:text-[#ffb400] transition-colors duration-500 leading-tight">
-                      {service.title}
-                    </h3>
-
-                    <p className="text-slate-500 leading-relaxed text-xs md:text-sm font-medium opacity-80 group-hover:opacity-100 transition-opacity">
-                      {service.desc}
-                    </p>
-                  </div>
-
-                  {/* Top Right Corner Number Accent */}
-                  <div className="absolute top-6 md:top-8 right-6 md:right-8 text-4xl md:text-5xl font-black italic text-slate-200/70 pointer-events-none group-hover:text-[#ffb400]/20 transition-colors duration-700">
-                    0{index + 1}
-                  </div>
-                </motion.div>
+                <TiltServiceCard key={index} service={service} index={index} />
               ))}
             </div>
           </div>

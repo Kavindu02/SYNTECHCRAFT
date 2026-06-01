@@ -9,6 +9,7 @@ import { InitialLoader } from '@/components/initial-loader'
 import { RouteTransitionLoader } from '@/components/route-transition-loader'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
 import { WhatsAppFloat } from '@/components/whatsapp-float'
+import { CustomCursor } from '@/components/custom-cursor'
 
 
 const geistSans = Geist({
@@ -131,6 +132,7 @@ export default function RootLayout({
         <Toaster />
         <ScrollToTop />
         <WhatsAppFloat />
+        <CustomCursor />
       </body>
 
     </html>
