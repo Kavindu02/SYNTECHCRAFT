@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
+import { HeroCodeBackground } from '@/components/hero-code-background'
 import { Twitter, Instagram, Linkedin, ArrowRight, Play, Settings } from 'lucide-react'
 
 const Hero = () => {
@@ -143,9 +144,9 @@ const Hero = () => {
     <section className="relative min-h-screen overflow-hidden flex items-center pt-24 pb-8 lg:pt-20 lg:pb-0">
       {/* Background with Subtle Modern texture & Image */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-white z-10 opacity-70"></div>
-        <motion.img 
-          src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070" 
+        <div className="absolute inset-0 bg-white z-10 opacity-70" />
+        <motion.img
+          src="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=2070"
           className="w-full h-full object-cover grayscale opacity-20"
           alt="Software Development"
           animate={{
@@ -161,9 +162,10 @@ const Hero = () => {
           }}
         />
         {/* Modern Shapes */}
-        <div className="absolute top-[-10%] right-[-5%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-[#ffb400]/10 rounded-full blur-[80px] md:blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] left-[-5%] w-[250px] h-[250px] md:w-[400px] md:h-[400px] bg-black/5 rounded-full blur-[70px] md:blur-[100px]"></div>
+        <div className="absolute top-[-10%] right-[-5%] w-[300px] h-[300px] md:w-[500px] md:h-[500px] bg-[#ffb400]/10 rounded-full blur-[80px] md:blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] w-[250px] h-[250px] md:w-[400px] md:h-[400px] bg-black/5 rounded-full blur-[70px] md:blur-[100px]" />
       </div>
+      <HeroCodeBackground />
 
       <div className="container mx-auto px-6 sm:px-12 lg:px-24 relative z-10">
         <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">

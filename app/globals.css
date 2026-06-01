@@ -188,3 +188,9 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  #hero-particles canvas {
+    display: none;
+  }
+}
