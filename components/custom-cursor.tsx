@@ -2,32 +2,75 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+interface Particle {
+  x: number
+  y: number
+  vx: number
+  vy: number
+  char: string
+  opacity: number
+  size: number
+  angle: number
+  spin: number
+  color: string
+}
+
 export function CustomCursor() {
   const dotRef  = useRef<HTMLDivElement>(null)
   const ringRef = useRef<HTMLDivElement>(null)
+  const canvasRef = useRef<HTMLCanvasElement>(null)
 
   const [visible,  setVisible]  = useState(false)
   const [hovering, setHovering] = useState(false)
   const [clicking, setClicking] = useState(false)
 
   useEffect(() => {
-    // Touch device → bail out, keep native cursor
+    // SSR safe check
     if (typeof window === 'undefined') return
-    if (window.matchMedia('(pointer: coarse)').matches) return
 
-    // Hide the native cursor site-wide
-    const style = document.createElement('style')
-    style.id = 'custom-cursor-hide'
-    style.textContent = '*, *::before, *::after { cursor: none !important; }'
-    document.head.appendChild(style)
+    const isTouch = window.matchMedia('(pointer: coarse)').matches
+
+    if (!isTouch) {
+      // Hide the native cursor site-wide ONLY on desktop devices
+      const style = document.createElement('style')
+      style.id = 'custom-cursor-hide'
+      style.textContent = '*, *::before, *::after { cursor: none !important; }'
+      document.head.appendChild(style)
+    }
+
+    const canvas = canvasRef.current
+    const ctx = canvas?.getContext('2d')
+
+    const resizeCanvas = () => {
+      if (canvas) {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+      }
+    }
+    resizeCanvas()
+    window.addEventListener('resize', resizeCanvas)
 
     let mouseX = 0
     let mouseY = 0
     let ringX  = 0
     let ringY  = 0
+    let lastX  = 0
+    let lastY  = 0
     let rafId  = 0
 
-    // Dot snaps instantly; ring lerps smoothly behind
+    const SYMBOLS = ['{', '}', '</>', '[]', '()', '=>', ';', '<>', 'const', 'fn', 'let', '++']
+    // A curated, harmonious, techy color palette with our gold brand color as primary
+    const COLORS = [
+      '#ffb400', // Syntechcraft gold
+      '#ffd254', // Light gold
+      '#ff9d00', // Darker gold
+      '#00f0ff', // Techy neon cyan
+      '#a855f7', // Techy purple
+    ]
+
+    const particles: Particle[] = []
+
+    // Dot snaps instantly; ring lerps smoothly behind; particles animate on canvas
     const tick = () => {
       ringX += (mouseX - ringX) * 0.1
       ringY += (mouseY - ringY) * 0.1
@@ -40,15 +83,167 @@ export function CustomCursor() {
         ringRef.current.style.transform =
           `translate(calc(-50% + ${ringX}px), calc(-50% + ${ringY}px))`
       }
+
+      // Draw and update particles on canvas
+      if (ctx && canvas) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i]
+          p.x += p.vx
+          p.y += p.vy
+          p.angle += p.spin
+          p.opacity -= 0.016 // fade out rate (approx. 1 second lifetime)
+          p.size -= 0.02 // shrink slowly
+
+          if (p.opacity <= 0 || p.size <= 0) {
+            particles.splice(i, 1)
+            continue
+          }
+
+          ctx.save()
+          ctx.globalAlpha = p.opacity
+          ctx.translate(p.x, p.y)
+          ctx.rotate(p.angle)
+          
+          // Glow effect for that high-end, premium feel
+          ctx.shadowBlur = 4
+          ctx.shadowColor = p.color
+          ctx.fillStyle = p.color
+          
+          // Use monospace font variables if available
+          ctx.font = `bold ${p.size}px var(--font-geist-mono), monospace`
+          ctx.textAlign = 'center'
+          ctx.textBaseline = 'middle'
+          ctx.fillText(p.char, 0, 0)
+          ctx.restore()
+        }
+      }
+
       rafId = requestAnimationFrame(tick)
     }
     rafId = requestAnimationFrame(tick)
 
     const onMove = (e: MouseEvent) => {
-      mouseX = e.clientX
-      mouseY = e.clientY
+      const x = e.clientX
+      const y = e.clientY
+
+      if (lastX === 0 && lastY === 0) {
+        lastX = x
+        lastY = y
+      }
+
+      mouseX = x
+      mouseY = y
       setVisible(true)
+
+      const dx = x - lastX
+      const dy = y - lastY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+
+      // Spawn particles when mouse is dragged/moved past a threshold
+      if (dist > 12) {
+        const count = Math.min(Math.floor(dist / 12), 3)
+        for (let i = 0; i < count; i++) {
+          const t = i / count
+          const spawnX = lastX + dx * t
+          const spawnY = lastY + dy * t
+
+          // Playful outward physics: particles drift slightly upwards and push outwards
+          const angle = Math.random() * Math.PI * 2
+          const speed = Math.random() * 0.8 + 0.3
+
+          particles.push({
+            x: spawnX,
+            y: spawnY,
+            vx: Math.cos(angle) * speed * 0.4,
+            vy: -Math.random() * 0.8 - 0.2, // Floats upward
+            char: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+            opacity: 1.0,
+            size: Math.random() * 5 + 10, // 10px to 15px
+            angle: (Math.random() - 0.5) * 0.5,
+            spin: (Math.random() - 0.5) * 0.04,
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          })
+        }
+        lastX = x
+        lastY = y
+      }
     }
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 0) return
+      const touch = e.touches[0]
+      const x = touch.clientX
+      const y = touch.clientY
+
+      if (lastX === 0 && lastY === 0) {
+        lastX = x
+        lastY = y
+      }
+
+      mouseX = x
+      mouseY = y
+      setVisible(true)
+
+      const dx = x - lastX
+      const dy = y - lastY
+      const dist = Math.sqrt(dx * dx + dy * dy)
+
+      // Spawn particles on mobile touches
+      if (dist > 10) {
+        const count = Math.min(Math.floor(dist / 10), 3)
+        for (let i = 0; i < count; i++) {
+          const t = i / count
+          const spawnX = lastX + dx * t
+          const spawnY = lastY + dy * t
+
+          const angle = Math.random() * Math.PI * 2
+          const speed = Math.random() * 0.8 + 0.3
+
+          particles.push({
+            x: spawnX,
+            y: spawnY,
+            vx: Math.cos(angle) * speed * 0.4,
+            vy: -Math.random() * 0.8 - 0.2, // Floats upward
+            char: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
+            opacity: 1.0,
+            size: Math.random() * 4 + 8, // 8px to 12px (slightly smaller on mobile)
+            angle: (Math.random() - 0.5) * 0.5,
+            spin: (Math.random() - 0.5) * 0.04,
+            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+          })
+        }
+        lastX = x
+        lastY = y
+      }
+    }
+
+    const onTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 0) return
+      const touch = e.touches[0]
+      const x = touch.clientX
+      const y = touch.clientY
+
+      lastX = x
+      lastY = y
+      mouseX = x
+      mouseY = y
+      
+      setVisible(true)
+      setClicking(true)
+    }
+
+    const onTouchEnd = () => {
+      setClicking(false)
+      // Fade out after a short delay so the user can see the release animation
+      setTimeout(() => {
+        setVisible(false)
+      }, 150)
+      lastX = 0
+      lastY = 0
+    }
+
     const onLeave  = () => setVisible(false)
     const onEnter  = () => setVisible(true)
     const onDown   = () => setClicking(true)
@@ -59,6 +254,11 @@ export function CustomCursor() {
     document.addEventListener('mouseenter', onEnter)
     document.addEventListener('mousedown',  onDown)
     document.addEventListener('mouseup',    onUp)
+
+    // Touch events for mobile screens
+    document.addEventListener('touchmove',  onTouchMove, { passive: true })
+    document.addEventListener('touchstart', onTouchStart, { passive: true })
+    document.addEventListener('touchend',   onTouchEnd, { passive: true })
 
     // Hover detection — attach/re-attach on DOM mutations
     const SELECTORS = 'a, button, [role="button"], input, textarea, select, label, [data-cursor-hover]'
@@ -78,23 +278,35 @@ export function CustomCursor() {
 
     return () => {
       cancelAnimationFrame(rafId)
+      window.removeEventListener('resize', resizeCanvas)
       document.removeEventListener('mousemove',  onMove)
       document.removeEventListener('mouseleave', onLeave)
       document.removeEventListener('mouseenter', onEnter)
       document.removeEventListener('mousedown',  onDown)
       document.removeEventListener('mouseup',    onUp)
+      document.removeEventListener('touchmove',  onTouchMove)
+      document.removeEventListener('touchstart', onTouchStart)
+      document.removeEventListener('touchend',   onTouchEnd)
       mo.disconnect()
-      document.getElementById('custom-cursor-hide')?.remove()
+      if (!isTouch) {
+        document.getElementById('custom-cursor-hide')?.remove()
+      }
     }
   }, [])
 
   return (
     <>
+      {/* ── Particle Trail Canvas ── */}
+      <canvas
+        ref={canvasRef}
+        className="pointer-events-none fixed inset-0 z-[99997] block"
+      />
+
       {/* ── Dot ── snaps to cursor instantly */}
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[99999] hidden md:block"
+        className="pointer-events-none fixed left-0 top-0 z-[99999] block"
         style={{
           width:  hovering ? '10px' : clicking ? '6px' : '8px',
           height: hovering ? '10px' : clicking ? '6px' : '8px',
@@ -115,7 +327,7 @@ export function CustomCursor() {
       <div
         ref={ringRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[99998] hidden md:block"
+        className="pointer-events-none fixed left-0 top-0 z-[99998] block"
         style={{
           width:  hovering ? '52px' : clicking ? '28px' : '36px',
           height: hovering ? '52px' : clicking ? '28px' : '36px',
