@@ -624,9 +624,9 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="group relative bg-slate-50/50 backdrop-blur-sm rounded-[2rem] md:rounded-[2.5rem] p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.03)] hover:shadow-[0_40px_80px_-20px_rgba(255,180,0,0.15)] flex flex-col"
+                className="group relative bg-slate-50/50 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
               >
-                <div className="relative h-60 md:h-72 overflow-hidden rounded-[1.8rem] md:rounded-[2rem]">
+                <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">
                   <img
                     src={proj.img || '/logo.png'}
                     alt={proj.title}
@@ -634,38 +634,40 @@ export default function Home() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
-                  <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-white/95 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-xl">
-                    <span className="text-black font-black text-[9px] md:text-[10px] uppercase tracking-widest">{proj.cat}</span>
-                  </div>
+                  {proj.cat && (
+                    <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-white/95 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-xl">
+                      <span className="text-black font-black text-[9px] md:text-[10px] uppercase tracking-widest">{proj.cat}</span>
+                    </div>
+                  )}
                 </div>
 
-                <div className="p-6 md:p-8 pb-8 md:pb-10 flex flex-col flex-grow gap-4 md:gap-5">
+                <div className="p-4 sm:p-6 md:p-8 pb-6 sm:pb-8 md:pb-10 flex flex-col flex-grow gap-3 sm:gap-4 md:gap-5">
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight italic leading-tight uppercase group-hover:text-[#ffb400] transition-colors duration-500">{proj.title}</h3>
-                    <div className="w-10 md:w-12 h-1 bg-[#ffb400] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight italic leading-tight uppercase group-hover:text-[#ffb400] transition-colors duration-500">{proj.title}</h3>
+                    <div className="w-8 sm:w-10 md:w-12 h-1 bg-[#ffb400] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                   </div>
 
-                  <p className="text-slate-500 text-xs md:text-sm leading-relaxed font-medium">
+                  <p className="text-slate-500 text-xs sm:text-sm md:text-base leading-relaxed font-medium">
                     {proj.desc}
                   </p>
 
-                  <div className="flex flex-wrap gap-2 py-1 md:py-2">
+                  <div className="flex flex-wrap gap-1 sm:gap-2 py-1 md:py-2">
                     {proj.tags?.map((tag: string, tIndex: number) => (
                       <span
                         key={tIndex}
-                        className="px-3 py-1 md:px-4 md:py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[8px] md:text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:bg-[#ffb400]/10 group-hover:border-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors duration-500"
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:bg-[#ffb400]/10 group-hover:border-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors duration-500"
                       >
                         {tag}
                       </span>
                     ))}
                   </div>
 
-                  <div className="pt-2 md:pt-4 mt-auto">
-                    <div className="w-full flex items-center justify-between bg-black text-white p-4 md:p-5 rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
-                      <span className="flex items-center gap-3">
+                  <div className="pt-2 sm:pt-3 md:pt-4 mt-auto">
+                    <div className="w-full flex items-center justify-between bg-black text-white p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
+                      <span className="flex items-center gap-2 sm:gap-3">
                         Launch Experience
                       </span>
-                      <ArrowUpRight size={20} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                      <ArrowUpRight size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
                     </div>
                   </div>
                 </div>
