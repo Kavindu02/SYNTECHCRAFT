@@ -111,7 +111,7 @@ export default function ProjectsPage() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-[#FAF9F6] text-foreground">
+    <main className="min-h-screen bg-[#FAF9F6] dark:bg-black text-slate-900 dark:text-white">
       {/* Navbar removed as requested */}
       <section className="max-w-7xl mx-auto pt-4 px-2 sm:px-4 md:px-8">
         <div className="flex flex-col items-center justify-center mb-10 gap-2 sm:gap-4 md:gap-8 w-full">
@@ -123,8 +123,8 @@ export default function ProjectsPage() {
               <div className="w-32 md:w-48 h-[3px] bg-[#ffb400]"></div>
             </div>
             <h1 className="group text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-black leading-[1] md:leading-[0.85] tracking-tighter uppercase italic text-center mt-4 sm:mt-6">
-              <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">DIGITAL</span>{' '}<br />
-              <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">PROJECTS.</span>
+              <span className="text-slate-900 dark:text-white transition-colors duration-300 group-hover:text-[#ffb400]">DIGITAL</span>{' '}<br />
+              <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">PROJECTS.</span>
             </h1>
           </div>
         </div>
@@ -135,7 +135,7 @@ export default function ProjectsPage() {
               href={proj.link || '#'}
               target={proj.link ? "_blank" : "_self"}
               rel="noopener noreferrer"
-              className="group relative bg-slate-50/50 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
+              className="group relative bg-slate-50/50 dark:bg-zinc-900/40 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 dark:border-zinc-800/80 hover:bg-white dark:hover:bg-zinc-900 hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
             >
               <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">
                 <img
@@ -145,31 +145,31 @@ export default function ProjectsPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                 {proj.cat && (
-                  <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-white/95 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-xl">
-                    <span className="text-black font-black text-[9px] md:text-[10px] uppercase tracking-widest">{proj.cat}</span>
+                  <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/20 dark:border-zinc-800/30 px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-xl">
+                    <span className="text-black dark:text-zinc-100 font-black text-[9px] md:text-[10px] uppercase tracking-widest">{proj.cat}</span>
                   </div>
                 )}
               </div>
               <div className="p-4 sm:p-6 md:p-8 pb-6 sm:pb-8 md:pb-10 flex flex-col flex-grow gap-3 sm:gap-4 md:gap-5">
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight italic leading-tight uppercase group-hover:text-[#ffb400] transition-colors duration-500">{proj.title}</h3>
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight italic leading-tight uppercase group-hover:text-[#ffb400] transition-colors duration-500">{proj.title}</h3>
                   <div className="w-8 sm:w-10 md:w-12 h-1 bg-[#ffb400] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                 </div>
-                <p className="text-slate-500 text-xs sm:text-sm md:text-base leading-relaxed font-medium">
+                <p className="text-slate-500 dark:text-zinc-400 text-xs sm:text-sm md:text-base leading-relaxed font-medium">
                   {proj.desc}
                 </p>
                 <div className="flex flex-wrap gap-1 sm:gap-2 py-1 md:py-2">
                   {proj.tags?.map((tag: string, tIndex: number) => (
                     <span
                       key={tIndex}
-                      className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:bg-[#ffb400]/10 group-hover:border-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors duration-500"
+                      className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700 rounded-full text-[8px] sm:text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest group-hover:bg-[#ffb400]/10 group-hover:border-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors duration-500"
                     >
                       {tag}
                     </span>
                   ))}
                 </div>
                 <div className="pt-2 sm:pt-3 md:pt-4 mt-auto">
-                  <div className="w-full flex items-center justify-between bg-black text-white p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
+                  <div className="w-full flex items-center justify-between bg-black text-white dark:bg-white dark:text-black p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
                     <span className="flex items-center gap-2 sm:gap-3">
                       Launch Experience
                     </span>
@@ -215,7 +215,7 @@ export default function ProjectsPage() {
           <Link
             href="/"
             aria-label="Back to Home"
-            className="relative w-12 h-12 md:w-14 md:h-14 bg-black border border-white/10 rounded-full flex items-center justify-center text-[#ffb400] shadow-2xl hover:bg-[#ffb400] hover:text-black hover:scale-110 transition-all duration-300 group"
+            className="relative w-12 h-12 md:w-14 md:h-14 bg-black dark:bg-zinc-900 border border-white/10 dark:border-zinc-800 rounded-full flex items-center justify-center text-[#ffb400] shadow-2xl hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black hover:scale-110 transition-all duration-300 group"
           >
             <Home size={28} strokeWidth={2.5} className="transition-transform group-hover:scale-110" />
           </Link>

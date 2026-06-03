@@ -10,6 +10,7 @@ import { RouteTransitionLoader } from '@/components/route-transition-loader'
 import { AnalyticsTracker } from '@/components/analytics-tracker'
 import { WhatsAppFloat } from '@/components/whatsapp-float'
 import { CustomCursor } from '@/components/custom-cursor'
+import { ThemeProvider } from '@/components/theme-provider'
 
 
 const geistSans = Geist({
@@ -99,42 +100,43 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning className="scroll-smooth" data-scroll-behavior="smooth">
-      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-slate-900 bg-white`} suppressHydrationWarning>
-        <InitialLoader />
-        <RouteTransitionLoader />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Organization",
-              "name": "SYNTECHCRAFT",
-              "url": "https://syntechcraft.com",
-              "logo": "https://syntechcraft.com/logo.png",
-              "contactPoint": {
-                "@type": "ContactPoint",
-                "telephone": "+94-74-2216-579",
-                "contactType": "customer service",
-                "areaServed": "LK",
-                "availableLanguage": ["en", "si"]
-              },
-              "sameAs": [
-                "https://www.facebook.com/share/17hZxJtcym/?mibextid=wwXIfr",
-                "https://www.linkedin.com/company/syntechcraft/posts/?feedView=all"
-              ]
-            })
-          }}
-        />
-        <Suspense fallback={null}>
-          <AnalyticsTracker />
-        </Suspense>
-        {children}
-        <Toaster />
-        <ScrollToTop />
-        <WhatsAppFloat />
-        <CustomCursor />
+      <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-slate-900 bg-white dark:bg-black dark:text-zinc-50`} suppressHydrationWarning>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <InitialLoader />
+          <RouteTransitionLoader />
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "Organization",
+                "name": "SYNTECHCRAFT",
+                "url": "https://syntechcraft.com",
+                "logo": "https://syntechcraft.com/logo.png",
+                "contactPoint": {
+                  "@type": "ContactPoint",
+                  "telephone": "+94-74-2216-579",
+                  "contactType": "customer service",
+                  "areaServed": "LK",
+                  "availableLanguage": ["en", "si"]
+                },
+                "sameAs": [
+                  "https://www.facebook.com/share/17hZxJtcym/?mibextid=wwXIfr",
+                  "https://www.linkedin.com/company/syntechcraft/posts/?feedView=all"
+                ]
+              })
+            }}
+          />
+          <Suspense fallback={null}>
+            <AnalyticsTracker />
+          </Suspense>
+          {children}
+          <Toaster />
+          <ScrollToTop />
+          <WhatsAppFloat />
+          <CustomCursor />
+        </ThemeProvider>
       </body>
-
     </html>
   )
 }

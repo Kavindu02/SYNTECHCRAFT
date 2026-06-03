@@ -75,7 +75,7 @@ export function ContactForm() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="relative overflow-hidden backdrop-blur-xl bg-white/60 border border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] md:rounded-[3rem] p-6 sm:p-8 md:p-14"
+        className="relative overflow-hidden backdrop-blur-xl bg-white/60 dark:bg-zinc-900/60 border border-white/40 dark:border-zinc-800/40 shadow-[0_20px_50px_rgba(0,0,0,0.05)] rounded-[2rem] md:rounded-[3rem] p-6 sm:p-8 md:p-14"
       >
         <AnimatePresence mode="wait">
           {!isSubmitted ? (
@@ -86,10 +86,10 @@ export function ContactForm() {
               transition={{ duration: 0.4 }}
             >
               <div className="mb-8 md:mb-12">
-                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
+                <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white mb-4">
                   Let&apos;s talk.
                 </h2>
-                <p className="text-slate-500 text-base md:text-lg">
+                <p className="text-slate-500 dark:text-zinc-400 text-base md:text-lg">
                   Have a project in mind? We&apos;d love to hear from you.
                 </p>
               </div>
@@ -102,12 +102,12 @@ export function ContactForm() {
                       name="name"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-black ml-1">Full Name</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-black dark:text-zinc-300 ml-1">Full Name</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="" 
                               {...field} 
-                              className="h-14 bg-white/40 border-slate-200 focus:bg-white focus:border-[#ffb400] focus:ring-2 focus:ring-[#ffb400] transition-all rounded-2xl"
+                              className="h-14 bg-white/40 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800 focus:bg-white dark:focus:bg-zinc-800 focus:border-[#ffb400] dark:text-white focus:ring-2 focus:ring-[#ffb400] transition-all rounded-2xl"
                             />
                           </FormControl>
                           <FormMessage className="text-xs font-medium" />
@@ -119,12 +119,12 @@ export function ContactForm() {
                       name="email"
                       render={({ field }) => (
                         <FormItem className="space-y-2">
-                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-black ml-1">Email Address</FormLabel>
+                          <FormLabel className="text-xs font-bold uppercase tracking-widest text-black dark:text-zinc-300 ml-1">Email Address</FormLabel>
                           <FormControl>
                             <Input 
                               placeholder="" 
                               {...field} 
-                              className="h-14 bg-white/40 border-slate-200 focus:bg-white focus:border-[#ffb400] focus:ring-2 focus:ring-[#ffb400] transition-all rounded-2xl"
+                              className="h-14 bg-white/40 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800 focus:bg-white dark:focus:bg-zinc-800 focus:border-[#ffb400] dark:text-white focus:ring-2 focus:ring-[#ffb400] transition-all rounded-2xl"
                             />
                           </FormControl>
                           <FormMessage className="text-xs font-medium" />
@@ -138,12 +138,12 @@ export function ContactForm() {
                     name="subject"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-black ml-1">Subject</FormLabel>
+                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-black dark:text-zinc-300 ml-1">Subject</FormLabel>
                         <FormControl>
                           <Input 
                             placeholder="" 
                             {...field} 
-                            className="h-14 bg-white/40 border-slate-200 focus:bg-white focus:border-[#ffb400] focus:ring-2 focus:ring-[#ffb400] transition-all rounded-2xl"
+                            className="h-14 bg-white/40 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800 focus:bg-white dark:focus:bg-zinc-800 focus:border-[#ffb400] dark:text-white focus:ring-2 focus:ring-[#ffb400] transition-all rounded-2xl"
                           />
                         </FormControl>
                         <FormMessage className="text-xs font-medium" />
@@ -156,11 +156,11 @@ export function ContactForm() {
                     name="message"
                     render={({ field }) => (
                       <FormItem className="space-y-2">
-                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-black ml-1">Your Message</FormLabel>
+                        <FormLabel className="text-xs font-bold uppercase tracking-widest text-black dark:text-zinc-300 ml-1">Your Message</FormLabel>
                         <FormControl>
                           <Textarea 
                             placeholder="" 
-                            className="min-h-[160px] bg-white/40 border-slate-200 focus:bg-white focus:border-[#ffb400] focus:ring-2 focus:ring-[#ffb400] transition-all rounded-3xl p-6 resize-none"
+                            className="min-h-[160px] bg-white/40 dark:bg-zinc-800/40 border-slate-200 dark:border-zinc-800 focus:bg-white dark:focus:bg-zinc-800 focus:border-[#ffb400] dark:text-white focus:ring-2 focus:ring-[#ffb400] transition-all rounded-3xl p-6 resize-none"
                             {...field} 
                           />
                         </FormControl>
@@ -172,7 +172,7 @@ export function ContactForm() {
                   <Button 
                     type="submit" 
                     disabled={isSubmitting}
-                    className="w-full h-16 bg-black text-white hover:bg-[#ffb400] hover:text-black rounded-2xl text-md font-bold uppercase tracking-[0.2em] transition-all group overflow-hidden shadow-lg"
+                    className="w-full h-16 bg-black text-white dark:bg-white dark:text-black hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black rounded-2xl text-md font-bold uppercase tracking-[0.2em] transition-all group overflow-hidden shadow-lg"
                   >
                     {isSubmitting ? (
                       <Loader2 className="w-6 h-6 animate-spin" />
@@ -193,17 +193,17 @@ export function ContactForm() {
               animate={{ opacity: 1, scale: 1 }}
               className="py-16 flex flex-col items-center text-center space-y-6"
             >
-              <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-600" />
+              <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-950/50 rounded-full flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <h3 className="text-3xl font-bold text-slate-900">Message Received!</h3>
-              <p className="text-slate-500 max-w-sm text-lg">
+              <h3 className="text-3xl font-bold text-slate-900 dark:text-white">Message Received!</h3>
+              <p className="text-slate-500 dark:text-zinc-400 max-w-sm text-lg">
                 Thank you for reaching out. Our team will get back to you within 24 hours.
               </p>
               <Button 
                 onClick={() => setIsSubmitted(false)}
                 variant="outline"
-                className="mt-6 rounded-full px-8 h-12 border-2 font-bold hover:bg-slate-50"
+                className="mt-6 rounded-full px-8 h-12 border-2 font-bold hover:bg-slate-50 dark:hover:bg-zinc-800 dark:text-white dark:border-zinc-700"
               >
                 Send Another Message
               </Button>

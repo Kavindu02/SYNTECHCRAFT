@@ -7,6 +7,7 @@ import { ContactForm } from '@/components/contact-form'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
+import { useTheme } from 'next-themes'
 
 interface Project {
   id?: number
@@ -187,7 +188,7 @@ function TiltServiceCard({ service, index }: { service: { title: string; desc: s
           transformStyle: 'preserve-3d',
           willChange: 'transform',
         }}
-        className="h-full group relative bg-white/85 p-6 md:p-8 rounded-[28px] md:rounded-[36px] border border-slate-200/70 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] flex flex-col items-start overflow-hidden backdrop-blur-sm"
+        className="h-full group relative bg-white/85 dark:bg-zinc-900/85 p-6 md:p-8 rounded-[28px] md:rounded-[36px] border border-slate-200/70 dark:border-zinc-800/80 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] flex flex-col items-start overflow-hidden backdrop-blur-sm"
       >
         {/* Mouse-tracked radial inner glow */}
         <div
@@ -202,16 +203,16 @@ function TiltServiceCard({ service, index }: { service: { title: string; desc: s
         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-[#ffb400]/10 via-transparent to-transparent opacity-70 pointer-events-none" />
 
         <div className="relative z-10 flex flex-col items-start gap-3">
-          <h3 className="text-lg md:text-xl font-black text-slate-900 tracking-tighter uppercase italic group-hover:text-[#ffb400] transition-colors duration-500 leading-tight">
+          <h3 className="text-lg md:text-xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic group-hover:text-[#ffb400] transition-colors duration-500 leading-tight">
             {service.title}
           </h3>
-          <p className="text-slate-500 leading-relaxed text-xs md:text-sm font-medium opacity-80 group-hover:opacity-100 transition-opacity">
+          <p className="text-slate-500 dark:text-zinc-400 leading-relaxed text-xs md:text-sm font-medium opacity-80 group-hover:opacity-100 transition-opacity">
             {service.desc}
           </p>
         </div>
 
         {/* Corner number accent */}
-        <div className="absolute top-6 md:top-8 right-6 md:right-8 text-4xl md:text-5xl font-black italic text-slate-200/70 pointer-events-none group-hover:text-[#ffb400]/20 transition-colors duration-700">
+        <div className="absolute top-6 md:top-8 right-6 md:right-8 text-4xl md:text-5xl font-black italic text-slate-200/70 dark:text-zinc-800/50 pointer-events-none group-hover:text-[#ffb400]/20 transition-colors duration-700">
           0{index + 1}
         </div>
       </div>
@@ -223,6 +224,7 @@ export default function Home() {
   // Only show the first 9 projects on the home page
   const [projectsList, setProjectsList] = useState<Project[]>([])
   const [activePoint, setActivePoint] = useState(0)
+  const { theme } = useTheme()
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -291,7 +293,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[#FAF9F6] scroll-smooth selection:bg-[#ffb400] selection:text-black">
+    <main className="min-h-screen bg-[#FAF9F6] dark:bg-black scroll-smooth selection:bg-[#ffb400] selection:text-black">
       <Navbar />
 
       {/* Hero Section */}
@@ -300,16 +302,16 @@ export default function Home() {
       </div>
 
       {/* Trusted By / Logo Cloud - TRULY MODERN ADDITION */}
-      <section className="py-12 md:py-20 border-b border-slate-100 bg-[#FAF9F6] overflow-hidden relative flex flex-col justify-center">
+      <section className="py-12 md:py-20 border-b border-slate-100 dark:border-zinc-900 bg-[#FAF9F6] dark:bg-black overflow-hidden relative flex flex-col justify-center">
         {/* Background Watermark Text */}
-        <div className="absolute top-[65%] left-[48%] -translate-x-1/2 -translate-y-1/2 font-black text-[11vw] leading-none tracking-normal text-slate-900/[0.03] whitespace-nowrap pointer-events-none select-none italic z-0 overflow-hidden w-full text-center scale-y-125">
+        <div className="absolute top-[65%] left-[48%] -translate-x-1/2 -translate-y-1/2 font-black text-[11vw] leading-none tracking-normal text-slate-900/[0.03] dark:text-white/[0.02] whitespace-nowrap pointer-events-none select-none italic z-0 overflow-hidden w-full text-center scale-y-125">
           SYNTECHCRAFT
         </div>
 
         {/* Decorative background element */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(#ffb400_0.5px,transparent_1px)] [background-size:32px_32px] opacity-[0.15]"></div>
 
-        <div className="absolute inset-0 bg-gradient-to-r from-[#FAF9F6] via-transparent to-[#FAF9F6] z-10 pointer-events-none hidden md:block opacity-40"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FAF9F6] dark:from-black via-transparent to-[#FAF9F6] dark:to-black z-10 pointer-events-none hidden md:block opacity-40"></div>
 
         <div className="max-w-[100vw] w-full mx-auto relative z-0">
           <div className="flex flex-col items-center mb-10 md:mb-16 px-6 md:px-8">
@@ -324,8 +326,8 @@ export default function Home() {
               <div className="h-px w-6 md:w-8 bg-[#ffb400]"></div>
             </motion.div>
             <h2 className="group text-2xl md:text-3xl font-black tracking-tighter italic text-center">
-              <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">TECHNOLOGIES</span>{' '}
-              <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">WE MASTER</span>
+              <span className="text-slate-900 dark:text-white transition-colors duration-300 group-hover:text-[#ffb400]">TECHNOLOGIES</span>{' '}
+              <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">WE MASTER</span>
             </h2>
           </div>
 
@@ -335,14 +337,14 @@ export default function Home() {
                 <motion.div
                   key={idx}
                   whileHover={{ y: -5 }}
-                  className="flex items-center gap-4 md:gap-5 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white border border-slate-100 shadow-sm hover:border-[#ffb400]/30 hover:shadow-xl hover:shadow-[#ffb400]/5 transition-all duration-500 cursor-default shrink-0"
+                  className="flex items-center gap-4 md:gap-5 px-6 md:px-8 py-3 md:py-4 rounded-xl md:rounded-2xl bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 shadow-sm hover:border-[#ffb400]/30 hover:shadow-xl hover:shadow-[#ffb400]/5 transition-all duration-500 cursor-default shrink-0"
                 >
                   <div className="w-8 h-8 md:w-10 md:h-10 flex items-center justify-center transition-all duration-700">
                     <img src={lang.icon} alt={lang.name} className="w-full h-full object-contain" />
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-base md:text-lg font-black text-slate-900 tracking-tight leading-none mb-1">{lang.name}</span>
-                    <span className="text-[8px] md:text-[9px] font-bold text-slate-400 uppercase tracking-widest">Enterprise Ready</span>
+                    <span className="text-base md:text-lg font-black text-slate-900 dark:text-white tracking-tight leading-none mb-1">{lang.name}</span>
+                    <span className="text-[8px] md:text-[9px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest">Enterprise Ready</span>
                   </div>
                 </motion.div>
               ))}
@@ -370,7 +372,7 @@ export default function Home() {
               rotateY: aboutImageTiltYSpring,
               transformPerspective: 1200,
             }}
-            className="w-full aspect-[4/5] bg-slate-200 rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[15px] border-white shadow-3xl relative z-10 group"
+            className="w-full aspect-[4/5] bg-slate-200 dark:bg-zinc-800 rounded-[40px] md:rounded-[60px] overflow-hidden border-[10px] md:border-[15px] border-white dark:border-zinc-950 shadow-3xl relative z-10 group"
           >
             <img src="about.jpg" className="w-full h-full object-cover group-hover:scale-110 transition-all duration-1000" alt="SDK Team" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity"></div>
@@ -388,7 +390,7 @@ export default function Home() {
             <span className="block text-black font-black uppercase tracking-[0.2em] text-[8px] md:text-[10px] mt-2 md:mt-4">Years Pioneering <br />Digital Frontiers</span>
           </motion.div>
 
-          <div className="absolute -bottom-6 -left-6 md:-bottom-10 md:-left-10 w-full h-full border-[2px] md:border-[3px] border-dashed border-slate-200 rounded-[40px] md:rounded-[60px] -z-0"></div>
+          <div className="absolute -bottom-6 -left-6 md:-bottom-10 md:-left-10 w-full h-full border-[2px] md:border-[3px] border-dashed border-slate-200 dark:border-zinc-800 rounded-[40px] md:rounded-[60px] -z-0"></div>
         </div>
 
         <div className="flex flex-col gap-8 md:gap-12 order-1 lg:order-2">
@@ -398,12 +400,12 @@ export default function Home() {
               <span className="text-[#ffb400] font-black uppercase tracking-[0.5em] text-[9px] md:text-[10px]">The SYNTECHCRAFT Standard</span>
             </div>
             <h2 className="group text-5xl md:text-6xl lg:text-8xl font-black leading-[0.9] md:leading-[0.8] tracking-tighter uppercase italic">
-              <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">WE TRANSFORM</span>{' '}
-              <br /><span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">REALITY.</span>
+              <span className="text-slate-900 dark:text-white transition-colors duration-300 group-hover:text-[#ffb400]">WE TRANSFORM</span>{' '}
+              <br /><span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">REALITY.</span>
             </h2>
           </div>
 
-          <p className="text-slate-500 leading-relaxed text-lg md:text-xl font-medium max-w-xl">
+          <p className="text-slate-500 dark:text-zinc-400 leading-relaxed text-lg md:text-xl font-medium max-w-xl">
             SYNTECHCRAFT isn&apos;t just a dev house. We are architects of the digital future, blending logic with aesthetics to build software that defines industries.
           </p>
 
@@ -423,7 +425,7 @@ export default function Home() {
                       boxShadow: '0 0 20px rgba(255, 180, 0, 0.3)'
                     } : { 
                       scale: 1,
-                      backgroundColor: 'rgb(248, 250, 252)', // slate-50
+                      backgroundColor: theme === 'dark' ? 'rgb(24, 24, 27)' : 'rgb(248, 250, 252)', // zinc-900 : slate-50
                       boxShadow: '0 0 0px rgba(255, 180, 0, 0)'
                     }}
                     transition={{ duration: 0.6, ease: "easeOut" }}
@@ -434,16 +436,16 @@ export default function Home() {
                       className={`transition-colors duration-500 ${activePoint === idx ? 'text-black' : 'text-[#ffb400]'} group-hover:text-black`} 
                     />
                   </motion.div>
-                  <h4 className="font-black text-[11px] md:text-[12px] uppercase tracking-widest text-slate-900">{item.t}</h4>
+                  <h4 className="font-black text-[11px] md:text-[12px] uppercase tracking-widest text-slate-900 dark:text-white">{item.t}</h4>
                 </div>
-                <p className="text-slate-400 text-[10px] md:text-xs font-medium pl-12 md:pl-14">{item.d}</p>
+                <p className="text-slate-400 dark:text-zinc-500 text-[10px] md:text-xs font-medium pl-12 md:pl-14">{item.d}</p>
               </div>
             ))}
 
           </div>
 
           <div className="pt-4 md:pt-8 flex">
-            <a href="#services" className="inline-flex items-center gap-4 md:gap-6 bg-black text-white px-8 py-5 md:px-10 md:py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px] hover:bg-[#ffb400] hover:text-black transition-all shadow-3xl shadow-black/10 group text-center">
+            <a href="#services" className="inline-flex items-center gap-4 md:gap-6 bg-black text-white dark:bg-white dark:text-black px-8 py-5 md:px-10 md:py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all shadow-3xl shadow-black/10 group text-center">
               Discover Our Edge
               <ArrowRight size={18} className="group-hover:translate-x-3 transition-transform" />
             </a>
@@ -521,10 +523,10 @@ export default function Home() {
       </section>
 
       {/* Services Section */}
-      <section id="services" className="py-16 md:py-28 px-6 md:px-8 relative overflow-hidden bg-[#FAF9F6]">
+      <section id="services" className="py-16 md:py-28 px-6 md:px-8 relative overflow-hidden bg-[#FAF9F6] dark:bg-black">
         {/* Modern Background Elements - Noise & Grid */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(rgba(0,0,0,0.4)_0.5px,transparent_0.5px)] [background-size:3px_3px]"></div>
-        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:40px_40px] opacity-40"></div>
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none bg-[radial-gradient(rgba(0,0,0,0.4)_0.5px,transparent_0.5px)] dark:bg-[radial-gradient(rgba(255,255,255,0.4)_0.5px,transparent_0.5px)] [background-size:3px_3px]"></div>
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] dark:bg-[radial-gradient(#1f2937_1px,transparent_1px)] [background-size:40px_40px] opacity-40"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="grid lg:grid-cols-12 gap-16 lg:gap-36 items-start">
@@ -541,12 +543,12 @@ export default function Home() {
                   <span className="text-[#ffb400] font-black uppercase tracking-[0.5em] text-[9px] md:text-[10px]">Solutions Spectrum</span>
                 </motion.div>
                 <h2 className="group text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter uppercase italic leading-[0.9] md:leading-[0.8]">
-                  <span className="text-slate-900 transition-colors duration-300 group-hover:text-[#ffb400]">ELITE</span>{' '}<br />
-                  <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black">SERVICES.</span>
+                  <span className="text-slate-900 dark:text-white transition-colors duration-300 group-hover:text-[#ffb400]">ELITE</span>{' '}<br />
+                  <span className="text-[#ffb400] not-italic transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">SERVICES.</span>
                 </h2>
               </div>
 
-              <p className="text-slate-500 leading-relaxed text-lg md:text-xl font-medium max-w-md">
+              <p className="text-slate-500 dark:text-zinc-400 leading-relaxed text-lg md:text-xl font-medium max-w-md">
                 We don&apos;t just build features; we engineer competitive advantages through technological supremacy.
               </p>
 
@@ -555,17 +557,17 @@ export default function Home() {
                   { id: '01', t: 'Precision Engineering', d: 'Code built for absolute performance.' },
                   { id: '02', t: 'Visionary Design', d: 'UI that dictates market trends.' }
                 ].map((item) => (
-                  <div key={item.id} className="group flex items-start gap-6 p-6 rounded-[24px] md:rounded-[32px] bg-white border border-slate-100 hover:border-[#ffb400]/50 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-[#ffb400]/5">
+                  <div key={item.id} className="group flex items-start gap-6 p-6 rounded-[24px] md:rounded-[32px] bg-white dark:bg-zinc-900 border border-slate-100 dark:border-zinc-800 hover:border-[#ffb400]/50 transition-all duration-500 shadow-sm hover:shadow-xl hover:shadow-[#ffb400]/5">
                     <motion.span
-                      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#ffb400]/40 text-[#ffb400] bg-white shadow-sm"
+                      className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-[#ffb400]/40 text-[#ffb400] bg-white dark:bg-zinc-900 shadow-sm"
                       animate={{ scale: [1, 1.12, 1], y: [0, -2, 0] }}
                       transition={{ duration: 2.6, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
                     >
                       <CheckCircle2 size={14} />
                     </motion.span>
                     <div>
-                      <h4 className="font-black text-[10px] md:text-[11px] uppercase tracking-widest text-slate-900 mb-1">{item.t}</h4>
-                      <p className="text-slate-400 text-[9px] md:text-[10px] font-bold uppercase tracking-tight">{item.d}</p>
+                      <h4 className="font-black text-[10px] md:text-[11px] uppercase tracking-widest text-slate-900 dark:text-white mb-1">{item.t}</h4>
+                      <p className="text-slate-400 dark:text-zinc-500 text-[9px] md:text-[10px] font-bold uppercase tracking-tight">{item.d}</p>
                     </div>
                   </div>
                 ))}
@@ -583,9 +585,9 @@ export default function Home() {
       </section>
 
       {/* Solutions / Portfolio Section */}
-      <section id="portfolio" className="py-16 md:py-28 px-6 md:px-8 bg-[#FAF9F6] overflow-hidden relative">
+      <section id="portfolio" className="py-16 md:py-28 px-6 md:px-8 bg-[#FAF9F6] dark:bg-black overflow-hidden relative">
         {/* Subtle decorative background element */}
-        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(#ffb400_0.7px,transparent_0.7px)] [background-size:32px_32px] opacity-[0.08]"></div>
+        <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(#ffb400_0.7px,transparent_0.7px)] [background-size:32px_32px] opacity-[0.08] dark:opacity-[0.04]"></div>
 
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex flex-col md:flex-row items-center justify-between mb-12 md:mb-20 gap-4 md:gap-6">
@@ -596,14 +598,14 @@ export default function Home() {
                 <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
               </div>
               <div className="group flex flex-col items-start mt-4 w-full">
-                <span className="text-5xl md:text-6xl lg:text-8xl font-black italic text-slate-900 leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left transition-colors duration-300 group-hover:text-[#ffb400]">DIGITAL</span>
-                <span className="text-5xl md:text-6xl lg:text-8xl font-black text-[#ffb400] leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left mt-2 transition-colors duration-300 group-hover:text-black">PROJECTS.</span>
+                <span className="text-5xl md:text-6xl lg:text-8xl font-black italic text-slate-900 dark:text-white leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left transition-colors duration-300 group-hover:text-[#ffb400]">DIGITAL</span>
+                <span className="text-5xl md:text-6xl lg:text-8xl font-black text-[#ffb400] leading-[0.9] md:leading-[0.85] tracking-tight uppercase text-left mt-2 transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">PROJECTS.</span>
               </div>
             </div>
             <div className="w-full flex justify-end items-end pb-70">
               <a
                 href="/projects"
-                className="min-w-[180px] flex items-center justify-between bg-black text-white px-8 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[12px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 hidden md:flex"
+                className="min-w-[180px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-8 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[12px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 hidden md:flex"
               >
                 <span className="flex items-center gap-4">View All Projects</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 group-hover/btn:-translate-y-1 transition-transform duration-300">
@@ -624,7 +626,7 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
-                className="group relative bg-slate-50/50 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 hover:bg-white hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
+                className="group relative bg-slate-50/50 dark:bg-zinc-900/40 backdrop-blur-sm rounded-xl sm:rounded-2xl md:rounded-[2.5rem] p-2 sm:p-3 border border-slate-200/40 dark:border-zinc-800/80 hover:bg-white dark:hover:bg-zinc-900 hover:border-[#ffb400]/50 transition-all duration-500 shadow-[0_6px_24px_-8px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_48px_-12px_rgba(255,180,0,0.10)] flex flex-col min-h-0 overflow-visible"
               >
                 <div className="relative aspect-[16/9] overflow-hidden rounded-lg sm:rounded-[1.8rem] md:rounded-[2rem]">
                   <img
@@ -635,19 +637,19 @@ export default function Home() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
 
                   {proj.cat && (
-                    <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-white/95 backdrop-blur-md border border-white/20 px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-xl">
-                      <span className="text-black font-black text-[9px] md:text-[10px] uppercase tracking-widest">{proj.cat}</span>
+                    <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-md border border-white/20 dark:border-zinc-800/30 px-3 py-1.5 md:px-4 md:py-2 rounded-xl md:rounded-2xl shadow-xl">
+                      <span className="text-black dark:text-zinc-100 font-black text-[9px] md:text-[10px] uppercase tracking-widest">{proj.cat}</span>
                     </div>
                   )}
                 </div>
 
                 <div className="p-4 sm:p-6 md:p-8 pb-6 sm:pb-8 md:pb-10 flex flex-col flex-grow gap-3 sm:gap-4 md:gap-5">
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight italic leading-tight uppercase group-hover:text-[#ffb400] transition-colors duration-500">{proj.title}</h3>
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-black text-slate-900 dark:text-white tracking-tight italic leading-tight uppercase group-hover:text-[#ffb400] transition-colors duration-500">{proj.title}</h3>
                     <div className="w-8 sm:w-10 md:w-12 h-1 bg-[#ffb400] transform origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
                   </div>
 
-                  <p className="text-slate-500 text-xs sm:text-sm md:text-base leading-relaxed font-medium">
+                  <p className="text-slate-500 dark:text-zinc-400 text-xs sm:text-sm md:text-base leading-relaxed font-medium">
                     {proj.desc}
                   </p>
 
@@ -655,7 +657,7 @@ export default function Home() {
                     {proj.tags?.map((tag: string, tIndex: number) => (
                       <span
                         key={tIndex}
-                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-50 border border-slate-100 rounded-full text-[8px] sm:text-[9px] font-bold text-slate-500 uppercase tracking-widest group-hover:bg-[#ffb400]/10 group-hover:border-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors duration-500"
+                        className="px-2 sm:px-3 py-1 sm:py-1.5 bg-slate-50 dark:bg-zinc-800 border border-slate-100 dark:border-zinc-700 rounded-full text-[8px] sm:text-[9px] font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-widest group-hover:bg-[#ffb400]/10 group-hover:border-[#ffb400]/20 group-hover:text-[#ffb400] transition-colors duration-500"
                       >
                         {tag}
                       </span>
@@ -663,7 +665,7 @@ export default function Home() {
                   </div>
 
                   <div className="pt-2 sm:pt-3 md:pt-4 mt-auto">
-                    <div className="w-full flex items-center justify-between bg-black text-white p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
+                    <div className="w-full flex items-center justify-between bg-black text-white dark:bg-white dark:text-black p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
                       <span className="flex items-center gap-2 sm:gap-3">
                         Launch Experience
                       </span>
@@ -677,7 +679,7 @@ export default function Home() {
             <div className="w-full flex justify-center mt-8 md:hidden">
               <a
                 href="/projects"
-                className="min-w-[140px] flex items-center justify-between bg-black text-white px-5 py-3 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20"
+                className="min-w-[140px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-5 py-3 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20"
               >
                 <span className="flex items-center gap-3">View All Projects</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 group-hover/btn:-translate-y-1 transition-transform duration-300">
@@ -686,7 +688,6 @@ export default function Home() {
               </a>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -699,7 +700,7 @@ export default function Home() {
             className="w-full h-full object-cover opacity-100"
             alt="City Background"
           />
-          <div className="absolute inset-0 bg-slate-900/95"></div>
+          <div className="absolute inset-0 bg-slate-900/95 dark:bg-black/95"></div>
         </div>
 
         <div className="absolute top-0 right-0 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-[#ffb400] opacity-10 blur-[100px] md:blur-[150px] -translate-y-1/2 translate-x-1/2 rounded-full z-0"></div>
@@ -713,7 +714,7 @@ export default function Home() {
               </div>
               <h2 className="group text-5xl md:text-7xl font-black leading-tight tracking-tighter uppercase italic">
                 <span className="text-white transition-colors duration-300 group-hover:text-[#ffb400]">LET&apos;S</span>{' '}<br />
-                <span className="text-[#ffb400] not-italic relative transition-colors duration-300 group-hover:text-black">
+                <span className="text-[#ffb400] not-italic relative transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">
                   TALK.
                   <motion.span
                     initial={{ width: 0 }}
@@ -760,7 +761,7 @@ export default function Home() {
         </div>
       </section>
 
-      <footer id="footer" className="bg-slate-950 pt-16 md:pt-28 pb-10 md:pb-14 px-6 md:px-8 relative overflow-hidden text-white">
+      <footer id="footer" className="bg-slate-950 dark:bg-black pt-16 md:pt-28 pb-10 md:pb-14 px-6 md:px-8 relative overflow-hidden text-white dark:border-t dark:border-zinc-900">
         <div className="absolute top-0 right-0 w-1/2 h-full bg-[#ffb400]/5 -z-0 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/4"></div>
         <div className="absolute bottom-0 left-0 w-[300px] md:w-[400px] h-[300px] md:h-[400px] bg-[#ffb400]/5 -z-0 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2"></div>
 
@@ -888,7 +889,7 @@ export default function Home() {
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-              <span className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Available for new projects</span>
+              <span className="text-slate-400 text-[10px] font-black uppercase tracking-widest">Available for new projects</span>
             </div>
           </div>
         </div>
