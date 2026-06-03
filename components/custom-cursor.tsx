@@ -23,12 +23,14 @@ export function CustomCursor() {
   const [visible,  setVisible]  = useState(false)
   const [hovering, setHovering] = useState(false)
   const [clicking, setClicking] = useState(false)
+  const [isTouchDevice, setIsTouchDevice] = useState(false)
 
   useEffect(() => {
     // SSR safe check
     if (typeof window === 'undefined') return
 
     const isTouch = window.matchMedia('(pointer: coarse)').matches
+    setIsTouchDevice(isTouch)
 
     if (!isTouch) {
       // Hide the native cursor site-wide ONLY on desktop devices
@@ -306,8 +308,9 @@ export function CustomCursor() {
       <div
         ref={dotRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[99999] block"
+        className="pointer-events-none fixed left-0 top-0 z-[99999] hidden md:block"
         style={{
+          display: isTouchDevice ? 'none' : undefined,
           width:  hovering ? '10px' : clicking ? '6px' : '8px',
           height: hovering ? '10px' : clicking ? '6px' : '8px',
           borderRadius: '50%',
@@ -327,8 +330,9 @@ export function CustomCursor() {
       <div
         ref={ringRef}
         aria-hidden="true"
-        className="pointer-events-none fixed left-0 top-0 z-[99998] block"
+        className="pointer-events-none fixed left-0 top-0 z-[99998] hidden md:block"
         style={{
+          display: isTouchDevice ? 'none' : undefined,
           width:  hovering ? '52px' : clicking ? '28px' : '36px',
           height: hovering ? '52px' : clicking ? '28px' : '36px',
           borderRadius: '50%',
