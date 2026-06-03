@@ -23,22 +23,17 @@ export function CustomCursor() {
   const [visible,  setVisible]  = useState(false)
   const [hovering, setHovering] = useState(false)
   const [clicking, setClicking] = useState(false)
-  const [isTouchDevice, setIsTouchDevice] = useState(false)
 
   useEffect(() => {
-    // SSR safe check
+    // Touch device → bail out, keep native cursor, do not show custom elements
     if (typeof window === 'undefined') return
+    if (window.matchMedia('(pointer: coarse)').matches) return
 
-    const isTouch = window.matchMedia('(pointer: coarse)').matches
-    setIsTouchDevice(isTouch)
-
-    if (!isTouch) {
-      // Hide the native cursor site-wide ONLY on desktop devices
-      const style = document.createElement('style')
-      style.id = 'custom-cursor-hide'
-      style.textContent = '*, *::before, *::after { cursor: none !important; }'
-      document.head.appendChild(style)
-    }
+    // Hide the native cursor site-wide on desktop
+    const style = document.createElement('style')
+    style.id = 'custom-cursor-hide'
+    style.textContent = '*, *::before, *::after { cursor: none !important; }'
+    document.head.appendChild(style)
 
     const canvas = canvasRef.current
     const ctx = canvas?.getContext('2d')
@@ -173,79 +168,6 @@ export function CustomCursor() {
       }
     }
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (e.touches.length === 0) return
-      const touch = e.touches[0]
-      const x = touch.clientX
-      const y = touch.clientY
-
-      if (lastX === 0 && lastY === 0) {
-        lastX = x
-        lastY = y
-      }
-
-      mouseX = x
-      mouseY = y
-      setVisible(true)
-
-      const dx = x - lastX
-      const dy = y - lastY
-      const dist = Math.sqrt(dx * dx + dy * dy)
-
-      // Spawn particles on mobile touches
-      if (dist > 10) {
-        const count = Math.min(Math.floor(dist / 10), 3)
-        for (let i = 0; i < count; i++) {
-          const t = i / count
-          const spawnX = lastX + dx * t
-          const spawnY = lastY + dy * t
-
-          const angle = Math.random() * Math.PI * 2
-          const speed = Math.random() * 0.8 + 0.3
-
-          particles.push({
-            x: spawnX,
-            y: spawnY,
-            vx: Math.cos(angle) * speed * 0.4,
-            vy: -Math.random() * 0.8 - 0.2, // Floats upward
-            char: SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)],
-            opacity: 1.0,
-            size: Math.random() * 4 + 8, // 8px to 12px (slightly smaller on mobile)
-            angle: (Math.random() - 0.5) * 0.5,
-            spin: (Math.random() - 0.5) * 0.04,
-            color: COLORS[Math.floor(Math.random() * COLORS.length)],
-          })
-        }
-        lastX = x
-        lastY = y
-      }
-    }
-
-    const onTouchStart = (e: TouchEvent) => {
-      if (e.touches.length === 0) return
-      const touch = e.touches[0]
-      const x = touch.clientX
-      const y = touch.clientY
-
-      lastX = x
-      lastY = y
-      mouseX = x
-      mouseY = y
-      
-      setVisible(true)
-      setClicking(true)
-    }
-
-    const onTouchEnd = () => {
-      setClicking(false)
-      // Fade out after a short delay so the user can see the release animation
-      setTimeout(() => {
-        setVisible(false)
-      }, 150)
-      lastX = 0
-      lastY = 0
-    }
-
     const onLeave  = () => setVisible(false)
     const onEnter  = () => setVisible(true)
     const onDown   = () => setClicking(true)
@@ -256,11 +178,6 @@ export function CustomCursor() {
     document.addEventListener('mouseenter', onEnter)
     document.addEventListener('mousedown',  onDown)
     document.addEventListener('mouseup',    onUp)
-
-    // Touch events for mobile screens
-    document.addEventListener('touchmove',  onTouchMove, { passive: true })
-    document.addEventListener('touchstart', onTouchStart, { passive: true })
-    document.addEventListener('touchend',   onTouchEnd, { passive: true })
 
     // Hover detection — attach/re-attach on DOM mutations
     const SELECTORS = 'a, button, [role="button"], input, textarea, select, label, [data-cursor-hover]'
@@ -286,13 +203,8 @@ export function CustomCursor() {
       document.removeEventListener('mouseenter', onEnter)
       document.removeEventListener('mousedown',  onDown)
       document.removeEventListener('mouseup',    onUp)
-      document.removeEventListener('touchmove',  onTouchMove)
-      document.removeEventListener('touchstart', onTouchStart)
-      document.removeEventListener('touchend',   onTouchEnd)
       mo.disconnect()
-      if (!isTouch) {
-        document.getElementById('custom-cursor-hide')?.remove()
-      }
+      document.getElementById('custom-cursor-hide')?.remove()
     }
   }, [])
 
@@ -301,7 +213,7 @@ export function CustomCursor() {
       {/* ── Particle Trail Canvas ── */}
       <canvas
         ref={canvasRef}
-        className="pointer-events-none fixed inset-0 z-[99997] block"
+        className="pointer-events-none fixed inset-0 z-[99997] hidden md:block"
       />
 
       {/* ── Dot ── snaps to cursor instantly */}
@@ -310,7 +222,6 @@ export function CustomCursor() {
         aria-hidden="true"
         className="pointer-events-none fixed left-0 top-0 z-[99999] hidden md:block"
         style={{
-          display: isTouchDevice ? 'none' : undefined,
           width:  hovering ? '10px' : clicking ? '6px' : '8px',
           height: hovering ? '10px' : clicking ? '6px' : '8px',
           borderRadius: '50%',
@@ -332,7 +243,6 @@ export function CustomCursor() {
         aria-hidden="true"
         className="pointer-events-none fixed left-0 top-0 z-[99998] hidden md:block"
         style={{
-          display: isTouchDevice ? 'none' : undefined,
           width:  hovering ? '52px' : clicking ? '28px' : '36px',
           height: hovering ? '52px' : clicking ? '28px' : '36px',
           borderRadius: '50%',
