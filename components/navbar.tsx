@@ -264,7 +264,7 @@ const Navbar = () => {
               onClick={(event) => handleAnchorClick(event, '#contact')}
               className={
                 !mounted || theme === 'light'
-                  ? `px-8 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 ${isContactActive
+                  ? `h-12 px-8 rounded-full font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 ${isContactActive
                     ? 'bg-[#ffb400] text-black shadow-[#ffb400]/20'
                     : 'bg-black text-white hover:bg-[#ffb400] hover:text-black shadow-black/10 hover:shadow-[#ffb400]/20'
                   }`
