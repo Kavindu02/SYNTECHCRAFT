@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, ArrowRight, Sun, Moon } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import { Button } from '@/components/ui/button'
 
 const NAV_LINKS = [
   { name: 'Home', href: '#home' },
@@ -20,6 +21,7 @@ const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [activeSection, setActiveSection] = useState(SECTION_IDS[0])
+  const [hoveredLink, setHoveredLink] = useState<string | null>(null)
   const navRef = useRef<HTMLElement | null>(null)
   const autoScrollRef = useRef<{ id: string; targetTop: number } | null>(null)
 
@@ -237,46 +239,53 @@ const Navbar = () => {
           </Link>
 
           {/* Desktop Nav Links */}
-          <div className="hidden lg:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-10" onMouseLeave={() => setHoveredLink(null)}>
             {NAV_LINKS.map((link) => {
               const linkId = link.href.slice(1)
               const isActive = activeSection === linkId
+              const isUnderlined = hoveredLink !== null ? hoveredLink === link.href : isActive
 
               return (
                 <Link
                   key={link.name}
                   href={link.href}
                   onClick={(event) => handleAnchorClick(event, link.href)}
-                  className={`relative text-[10px] font-black uppercase tracking-[0.3em] transition-colors group ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-zinc-400 hover:text-black dark:hover:text-white'
+                  onMouseEnter={() => setHoveredLink(link.href)}
+                  className={`relative text-[10px] font-black uppercase tracking-[0.3em] transition-colors py-1 ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-zinc-400 hover:text-black dark:hover:text-white'
                     }`}
                 >
                   {link.name}
-                  <span
-                    className={`absolute -bottom-2 left-0 h-[2px] bg-[#ffb400] transition-all ${isActive ? 'w-full' : 'w-0 group-hover:w-full'
-                      }`}
-                  ></span>
+                  {isUnderlined && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute -bottom-2 left-0 right-0 h-[2px] bg-[#ffb400]"
+                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                    />
+                  )}
                 </Link>
               )
             })}
 
-            <a
-              href="#contact"
-              onClick={(event) => handleAnchorClick(event, '#contact')}
-              className={
-                !mounted || theme === 'light'
-                  ? `h-12 px-8 rounded-full font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 ${isContactActive
-                    ? 'bg-[#ffb400] text-black shadow-[#ffb400]/20'
-                    : 'bg-black text-white hover:bg-[#ffb400] hover:text-black shadow-black/10 hover:shadow-[#ffb400]/20'
-                  }`
-                  : `h-12 px-8 rounded-full font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 border ${isContactActive
-                    ? 'bg-[#ffb400] text-black border-[#ffb400] shadow-[#ffb400]/20'
-                    : 'bg-white text-black border-white hover:bg-[#ffb400] hover:text-black hover:border-[#ffb400] shadow-[#ffb400]/20'
-                  }`
-              }
-            >
-              Contact
-              <ArrowRight size={14} />
-            </a>
+            <Button asChild variant="ghost" className="p-0 h-auto rounded-full hover:bg-transparent hover:text-inherit">
+              <a
+                href="#contact"
+                onClick={(event) => handleAnchorClick(event, '#contact')}
+                className={
+                  !mounted || theme === 'light'
+                    ? `h-12 px-8 rounded-full font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 ${isContactActive
+                      ? 'bg-[#ffb400] text-black shadow-[#ffb400]/20'
+                      : 'bg-black text-white hover:bg-[#ffb400] hover:text-black shadow-black/10 hover:shadow-[#ffb400]/20'
+                    }`
+                    : `h-12 px-8 rounded-full font-black uppercase tracking-[0.2em] text-[10px] transition-all shadow-xl flex items-center gap-3 border ${isContactActive
+                      ? 'bg-[#ffb400] text-black border-[#ffb400] shadow-[#ffb400]/20'
+                      : 'bg-white text-black border-white hover:bg-[#ffb400] hover:text-black hover:border-[#ffb400] shadow-[#ffb400]/20'
+                    }`
+                }
+              >
+                Contact
+                <ArrowRight size={14} />
+              </a>
+            </Button>
 
             {/* Desktop Theme Toggle */}
             {renderThemeToggle(false)}
@@ -346,10 +355,11 @@ const Navbar = () => {
               </button>
             </div>
 
-            <div className="flex flex-col gap-6 mb-auto">
+            <div className="flex flex-col gap-6 mb-auto" onMouseLeave={() => setHoveredLink(null)}>
               {NAV_LINKS.map((link, idx) => {
                 const linkId = link.href.slice(1)
                 const isActive = activeSection === linkId
+                const isUnderlined = hoveredLink !== null ? hoveredLink === link.href : isActive
 
                 return (
                   <motion.div
@@ -361,14 +371,18 @@ const Navbar = () => {
                     <Link
                       href={link.href}
                       onClick={(event) => handleAnchorClick(event, link.href, true)}
+                      onMouseEnter={() => setHoveredLink(link.href)}
                       className={`relative text-4xl font-black tracking-tighter uppercase italic transition-colors inline-block group ${isActive ? 'text-slate-900 dark:text-white' : 'text-slate-500 dark:text-zinc-400 hover:text-black dark:hover:text-white'
                         }`}
                     >
                       {link.name}
-                      <span
-                        className={`absolute -bottom-2 left-0 h-[3px] bg-[#ffb400] transition-all ${isActive ? 'w-full' : 'w-0 group-hover:w-full'
-                          }`}
-                      ></span>
+                      {isUnderlined && (
+                        <motion.span
+                          layoutId="nav-underline-mobile"
+                          className="absolute -bottom-2 left-0 right-0 h-[3px] bg-[#ffb400]"
+                          transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                        />
+                      )}
                     </Link>
                   </motion.div>
                 )
@@ -428,13 +442,15 @@ const Navbar = () => {
                   </a>
                 ))}
               </div>
-              <a
-                href="#contact"
-                onClick={(event) => handleAnchorClick(event, '#contact', true)}
-                className="w-full bg-[#ffb400] text-black font-black py-6 rounded-2xl text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all shadow-lg"
-              >
-                Let&apos;s Talk <ArrowRight size={18} />
-              </a>
+              <Button asChild variant="ghost" className="w-full p-0 h-auto rounded-2xl hover:bg-transparent hover:text-inherit">
+                <a
+                  href="#contact"
+                  onClick={(event) => handleAnchorClick(event, '#contact', true)}
+                  className="w-full bg-[#ffb400] text-black font-black py-6 rounded-2xl text-[10px] uppercase tracking-[0.3em] flex items-center justify-center gap-4 hover:bg-black hover:text-white transition-all shadow-lg"
+                >
+                  Let&apos;s Talk <ArrowRight size={18} />
+                </a>
+              </Button>
             </div>
           </motion.div>
         )}

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { HeroCodeBackground } from '@/components/hero-code-background'
+import { Button } from '@/components/ui/button'
 import { Twitter, Instagram, Linkedin, ArrowRight, Play, Settings } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
@@ -231,23 +232,25 @@ const Hero = () => {
               transition={{ delay: 0.6 }}
               className="flex flex-wrap items-center gap-8"
             >
-              <motion.a 
-                href="#portfolio" 
-                whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 180, 0, 0.2)" }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-black text-white dark:bg-white dark:text-black px-8 py-5 md:px-12 md:py-7 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all flex items-center gap-4 group cursor-pointer text-center relative overflow-hidden"
-              >
-                <span className="relative z-10">VIEW PROJECTS</span>
-                <ArrowRight size={18} className="relative z-10 group-hover:translate-x-2 transition-transform duration-300" />
-                
-                {/* Animated Background Shimmer */}
-                <motion.div 
-                  initial={{ x: '-100%' }}
-                  whileHover={{ x: '100%' }}
-                  transition={{ duration: 0.6 }}
-                  className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"
-                />
-              </motion.a>
+              <Button asChild variant="ghost" className="p-0 h-auto rounded-2xl hover:bg-transparent hover:text-inherit">
+                <motion.a 
+                  href="#portfolio" 
+                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 180, 0, 0.2)" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="bg-black text-white dark:bg-white dark:text-black px-8 py-5 md:px-12 md:py-7 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all flex items-center gap-4 group cursor-pointer text-center relative overflow-hidden"
+                >
+                  <span className="relative z-10">VIEW PROJECTS</span>
+                  <ArrowRight size={18} className="relative z-10 group-hover:translate-x-2 transition-transform duration-300" />
+                  
+                  {/* Animated Background Shimmer */}
+                  <motion.div 
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"
+                  />
+                </motion.a>
+              </Button>
             </motion.div>
           </div>
 

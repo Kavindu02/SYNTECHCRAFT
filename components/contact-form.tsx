@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
 import { motion, AnimatePresence } from "framer-motion"
-import { Send, CheckCircle2, Loader2, ArrowRight } from "lucide-react"
+import { Loader2, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -194,7 +194,46 @@ export function ContactForm() {
               className="py-16 flex flex-col items-center text-center space-y-6"
             >
               <div className="w-24 h-24 bg-emerald-100 dark:bg-emerald-950/50 rounded-full flex items-center justify-center mb-4">
-                <CheckCircle2 className="w-12 h-12 text-emerald-600 dark:text-emerald-400" />
+                <motion.svg
+                  className="w-12 h-12 text-emerald-600 dark:text-emerald-400"
+                  viewBox="0 0 100 100"
+                  initial="hidden"
+                  animate="visible"
+                >
+                  <motion.circle
+                    cx="50"
+                    cy="50"
+                    r="45"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    fill="none"
+                    variants={{
+                      hidden: { pathLength: 0, opacity: 0 },
+                      visible: {
+                        pathLength: 1,
+                        opacity: 1,
+                        transition: { duration: 0.6, ease: "easeInOut" }
+                      }
+                    }}
+                  />
+                  <motion.path
+                    d="M30 52 L45 67 L70 38"
+                    stroke="currentColor"
+                    strokeWidth="6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    fill="none"
+                    variants={{
+                      hidden: { pathLength: 0, opacity: 0 },
+                      visible: {
+                        pathLength: 1,
+                        opacity: 1,
+                        transition: { delay: 0.5, duration: 0.4, ease: "easeOut" }
+                      }
+                    }}
+                  />
+                </motion.svg>
               </div>
               <h3 className="text-3xl font-bold text-slate-900 dark:text-white">Message Received!</h3>
               <p className="text-slate-500 dark:text-zinc-400 max-w-sm text-lg">

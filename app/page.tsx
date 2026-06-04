@@ -4,6 +4,7 @@ import Navbar from '@/components/navbar'
 import Hero from '@/components/hero'
 import Image from 'next/image'
 import { ContactForm } from '@/components/contact-form'
+import { Button } from '@/components/ui/button'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
@@ -445,10 +446,12 @@ export default function Home() {
           </div>
 
           <div className="pt-4 md:pt-8 flex">
-            <a href="#services" className="inline-flex items-center gap-4 md:gap-6 bg-black text-white dark:bg-white dark:text-black px-8 py-5 md:px-10 md:py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all shadow-3xl shadow-black/10 group text-center">
-              Discover Our Edge
-              <ArrowRight size={18} className="group-hover:translate-x-3 transition-transform" />
-            </a>
+            <Button asChild variant="ghost" className="p-0 h-auto rounded-2xl hover:bg-transparent hover:text-inherit">
+              <a href="#services" className="inline-flex items-center gap-4 md:gap-6 bg-black text-white dark:bg-white dark:text-black px-8 py-5 md:px-10 md:py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-[9px] md:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all shadow-3xl shadow-black/10 group text-center">
+                Discover Our Edge
+                <ArrowRight size={18} className="group-hover:translate-x-3 transition-transform" />
+              </a>
+            </Button>
           </div>
         </div>
       </section>
@@ -603,15 +606,27 @@ export default function Home() {
               </div>
             </div>
             <div className="w-full flex justify-end items-end pb-70">
-              <a
-                href="/projects"
-                className="min-w-[180px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-8 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[12px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 hidden md:flex"
-              >
-                <span className="flex items-center gap-4">View All Projects</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 group-hover/btn:-translate-y-1 transition-transform duration-300">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
+              <Button asChild variant="ghost" className="p-0 h-auto rounded-2xl hover:bg-transparent hover:text-inherit">
+                <motion.a
+                  href="/projects"
+                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 180, 0, 0.2)" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="min-w-[180px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-8 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[12px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 hidden md:flex relative overflow-hidden"
+                >
+                  <span className="flex items-center gap-4 relative z-10">View All Projects</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 transition-transform duration-300 relative z-10">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                  
+                  {/* Animated Background Shimmer */}
+                  <motion.div 
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"
+                  />
+                </motion.a>
+              </Button>
             </div>
           </div>
 
@@ -665,27 +680,41 @@ export default function Home() {
                   </div>
 
                   <div className="pt-2 sm:pt-3 md:pt-4 mt-auto">
-                    <div className="w-full flex items-center justify-between bg-black text-white dark:bg-white dark:text-black p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
-                      <span className="flex items-center gap-2 sm:gap-3">
-                        Launch Experience
-                      </span>
-                      <ArrowUpRight size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
-                    </div>
+                    <Button asChild variant="ghost" className="w-full p-0 h-auto rounded-lg sm:rounded-xl md:rounded-2xl hover:bg-transparent hover:text-inherit">
+                      <div className="w-full flex items-center justify-between bg-black text-white dark:bg-white dark:text-black p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
+                        <span className="flex items-center gap-2 sm:gap-3">
+                          Launch Experience
+                        </span>
+                        <ArrowUpRight size={16} className="group-hover/btn:translate-x-1 group-hover/btn:-translate-y-1 transition-transform" />
+                      </div>
+                    </Button>
                   </div>
                 </div>
               </motion.a>
             ))}
             {/* Mobile only: View All Projects button below grid */}
             <div className="w-full flex justify-center mt-8 md:hidden">
-              <a
-                href="/projects"
-                className="min-w-[140px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-5 py-3 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20"
-              >
-                <span className="flex items-center gap-3">View All Projects</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 group-hover/btn:-translate-y-1 transition-transform duration-300">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </a>
+              <Button asChild variant="ghost" className="p-0 h-auto rounded-xl hover:bg-transparent hover:text-inherit">
+                <motion.a
+                  href="/projects"
+                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 180, 0, 0.2)" }}
+                  whileTap={{ scale: 0.95 }}
+                  className="min-w-[140px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-5 py-3 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 relative overflow-hidden"
+                >
+                  <span className="flex items-center gap-3 relative z-10">View All Projects</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 transition-transform duration-300 relative z-10">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                  
+                  {/* Animated Background Shimmer */}
+                  <motion.div 
+                    initial={{ x: '-100%' }}
+                    whileHover={{ x: '100%' }}
+                    transition={{ duration: 0.6 }}
+                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"
+                  />
+                </motion.a>
+              </Button>
             </div>
           </div>
         </div>
