@@ -179,21 +179,16 @@ export function CustomCursor() {
     document.addEventListener('mousedown',  onDown)
     document.addEventListener('mouseup',    onUp)
 
-    // Hover detection — attach/re-attach on DOM mutations
+    // Hover detection — use event delegation to avoid mutating DOM attributes and causing hydration mismatches
     const SELECTORS = 'a, button, [role="button"], input, textarea, select, label, [data-cursor-hover]'
 
-    const attachHover = () => {
-      document.querySelectorAll<HTMLElement>(SELECTORS).forEach(el => {
-        if (el.dataset.cursorBound) return
-        el.dataset.cursorBound = '1'
-        el.addEventListener('mouseenter', () => setHovering(true))
-        el.addEventListener('mouseleave', () => setHovering(false))
-      })
+    const handleMouseOver = (e: MouseEvent) => {
+      if (e.target instanceof Element) {
+        setHovering(!!e.target.closest(SELECTORS))
+      }
     }
-    attachHover()
 
-    const mo = new MutationObserver(attachHover)
-    mo.observe(document.body, { childList: true, subtree: true })
+    document.addEventListener('mouseover', handleMouseOver)
 
     return () => {
       cancelAnimationFrame(rafId)
@@ -203,7 +198,7 @@ export function CustomCursor() {
       document.removeEventListener('mouseenter', onEnter)
       document.removeEventListener('mousedown',  onDown)
       document.removeEventListener('mouseup',    onUp)
-      mo.disconnect()
+      document.removeEventListener('mouseover',  handleMouseOver)
       document.getElementById('custom-cursor-hide')?.remove()
     }
   }, [])
