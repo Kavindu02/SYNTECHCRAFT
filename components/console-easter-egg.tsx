@@ -1,0 +1,32 @@
+'use client'
+
+import { useEffect } from 'react'
+
+export function ConsoleEasterEgg() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    // Prevent double execution in dev/Strict Mode
+    if ((window as any).__syntechcraft_easter_egg_logged__) return
+    ;(window as any).__syntechcraft_easter_egg_logged__ = true
+
+    const asciiArt = `
+███████╗██╗   ██╗███╗   ██╗████████╗███████╗ ██████╗██╗  ██╗ ██████╗██████╗  █████╗ ███████╗████████╗
+██╔════╝╚██╗ ██╔╝████╗  ██║╚══██╔══╝██╔════╝██╔════╝██║  ██║██╔════╝██╔══██╗██╔══██╗██╔════╝╚══██╔══╝
+███████╗ ╚████╔╝ ██╔██╗ ██║   ██║   █████╗  ██║     ███████║██║     ██████╔╝███████║█████╗     ██║   
+╚════██║  ╚██╔╝  ██║╚██╗██║   ██║   ██╔══╝  ██║     ██╔══██║██║     ██╔══██╗██╔══██║██╔══╝     ██║   
+███████║   ██║   ██║ ╚████║   ██║   ███████╗╚██████╗██║  ██║╚██████╗██║  ██║██║  ██║██║        ██║   
+╚══════╝   ╚═╝   ╚═╝  ╚═══╝   ╚═╝   ╚══════╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝        ╚═╝
+`
+
+    console.log(
+      `%c${asciiArt}\n%cHey Dev! Thanks for inspecting Syntechcraft 👨‍💻 Hire us? \n\n%cInterested in building something amazing together? Let's chat: %chttps://syntechcraft.com/contact`,
+      'color: #ffb400; font-weight: bold; font-family: monospace;',
+      'color: #ffffff; font-size: 14px; font-weight: bold; font-family: system-ui, sans-serif; padding-top: 10px;',
+      'color: #a1a1aa; font-size: 12px; font-family: system-ui, sans-serif;',
+      'color: #ffb400; font-size: 12px; font-weight: bold; text-decoration: underline; font-family: system-ui, sans-serif;'
+    )
+  }, [])
+
+  return null
+}

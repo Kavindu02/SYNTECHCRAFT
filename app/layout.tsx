@@ -11,6 +11,8 @@ import { AnalyticsTracker } from '@/components/analytics-tracker'
 import { WhatsAppFloat } from '@/components/whatsapp-float'
 import { CustomCursor } from '@/components/custom-cursor'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ConsoleEasterEgg } from '@/components/console-easter-egg'
+
 
 
 const geistSans = Geist({
@@ -102,6 +104,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className="scroll-smooth" data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased text-slate-900 bg-white dark:bg-black dark:text-zinc-50`} suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="light" enableSystem={false}>
+          <ConsoleEasterEgg />
           <InitialLoader />
           <RouteTransitionLoader />
           <script
