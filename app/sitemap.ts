@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next'
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const baseUrl = 'https://sdk-solutions.com'
+    const baseUrl = 'https://syntechcraft.com'
 
     return [
         {
@@ -10,7 +10,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
             changeFrequency: 'monthly',
             priority: 1,
         },
-        // Add other public routes if they exist
+        {
+            url: `${baseUrl}/projects`,
+            lastModified: new Ranger().toISOString(),
+            changeFrequency: 'monthly',
+            priority: 0.8,
+        },
     ]
 }
 
