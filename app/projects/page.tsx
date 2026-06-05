@@ -6,7 +6,7 @@ import Navbar from "../../components/navbar";
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import { Home } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Project {
   _id?: string;
@@ -86,6 +86,8 @@ function extractProjects(value: unknown): Project[] {
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -110,6 +112,27 @@ export default function ProjectsPage() {
     fetchProjects();
   }, []);
 
+  const categories = [
+    "All",
+    ...Array.from(
+      new Set(
+        projects
+          .map((p) => p.cat)
+          .filter(Boolean)
+          .map((cat) => (cat.trim().toUpperCase() === "LEARNING MANAGEMENT SYSTEM" ? "LMS" : cat))
+      )
+    ).sort()
+  ];
+
+  const filteredProjects = selectedCategory === "All"
+    ? projects
+    : projects.filter((p) => {
+        if (selectedCategory === "LMS") {
+          return p.cat.trim().toUpperCase() === "LEARNING MANAGEMENT SYSTEM" || p.cat === "LMS";
+        }
+        return p.cat === selectedCategory;
+      });
+
   return (
     <main className="min-h-screen bg-[#FAF9F6] dark:bg-black text-slate-900 dark:text-white">
       {/* Navbar removed as requested */}
@@ -128,8 +151,106 @@ export default function ProjectsPage() {
             </h1>
           </div>
         </div>
+
+        {/* Category Filter Bar */}
+        {categories.length > 1 && (
+          <div className="flex justify-center mb-12 w-full px-4">
+            {/* Desktop View: Horizontal Buttons Row */}
+            <div className="hidden md:flex items-center gap-2 md:gap-3 bg-white/50 dark:bg-zinc-900/50 backdrop-blur-md p-1.5 rounded-full border border-slate-200/50 dark:border-zinc-800/80 shadow-md max-w-full overflow-x-auto no-scrollbar whitespace-nowrap scroll-smooth">
+              {categories.map((category) => {
+                const isActive = selectedCategory === category;
+                return (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-4 py-2 sm:px-6 sm:py-2.5 rounded-full text-xs sm:text-sm font-black uppercase tracking-wider transition-all duration-300 ${
+                      isActive
+                        ? "bg-[#ffb400] text-black shadow-lg shadow-[#ffb400]/20 scale-105"
+                        : "text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100/60 dark:hover:bg-zinc-800/60"
+                    }`}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Mobile View: Custom Dropdown Menu */}
+            <div className="flex md:hidden w-full max-w-[280px] relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full flex items-center justify-between bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md text-slate-900 dark:text-white font-black uppercase tracking-wider text-xs px-5 py-4 rounded-2xl border border-slate-200/60 dark:border-zinc-800/80 shadow-lg hover:border-[#ffb400]/60 active:scale-[0.98] transition-all duration-300"
+              >
+                <span>{selectedCategory}</span>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth="3.5"
+                  className={`transition-transform duration-300 ${isDropdownOpen ? 'rotate-180 text-[#ffb400]' : 'text-slate-500 dark:text-zinc-400'}`}
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              <AnimatePresence>
+                {isDropdownOpen && (
+                  <>
+                    {/* Click-away overlay */}
+                    <div
+                      className="fixed inset-0 z-40 bg-transparent"
+                      onClick={() => setIsDropdownOpen(false)}
+                    />
+                    {/* Dropdown Options List */}
+                    <motion.div
+                      initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute top-[calc(100%+8px)] left-0 right-0 z-50 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl border border-slate-200/50 dark:border-zinc-800/80 rounded-2xl shadow-2xl p-2 flex flex-col gap-1 overflow-hidden"
+                    >
+                      {categories.map((category) => {
+                        const isActive = selectedCategory === category;
+                        return (
+                          <button
+                            key={category}
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setIsDropdownOpen(false);
+                            }}
+                            className={`w-full text-left px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-200 ${
+                              isActive
+                                ? "bg-[#ffb400] text-black shadow-md shadow-[#ffb400]/10 scale-[1.02]"
+                                : "text-slate-600 dark:text-zinc-400 hover:bg-[#ffb400]/10 hover:text-[#ffb400]"
+                            }`}
+                          >
+                            {category}
+                          </button>
+                        );
+                      })}
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+
+            <style dangerouslySetInnerHTML={{ __html: `
+              .no-scrollbar::-webkit-scrollbar {
+                display: none !important;
+              }
+              .no-scrollbar {
+                -ms-overflow-style: none !important;
+                scrollbar-width: none !important;
+              }
+            ` }} />
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-8 md:gap-10">
-          {projects.map((proj: Project, index: number) => (
+          {filteredProjects.map((proj: Project, index: number) => (
             <a
               key={proj._id || proj.id || index}
               href={proj.link || '#'}
