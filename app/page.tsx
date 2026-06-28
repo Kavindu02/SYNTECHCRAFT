@@ -7,7 +7,7 @@ import { ContactForm } from '@/components/contact-form'
 import { Button } from '@/components/ui/button'
 import { motion, useInView, useMotionValue, useSpring, useScroll, useTransform } from 'framer-motion'
 import { useEffect, useRef, useState, type MouseEvent } from 'react'
-import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp } from 'lucide-react'
+import { CheckCircle2, BarChart3, PieChart, TrendingUp, Users, Briefcase, Globe, ArrowRight, MapPin, Phone, Mail, Rocket, Zap, Award, ArrowUpRight, Smartphone, Facebook, Linkedin, ArrowUp, Star } from 'lucide-react'
 import { useTheme } from 'next-themes'
 
 interface Project {
@@ -224,6 +224,38 @@ function TiltServiceCard({ service, index }: { service: { title: string; desc: s
 export default function Home() {
   // Only show the first 9 projects on the home page
   const [projectsList, setProjectsList] = useState<Project[]>([])
+  const [reviewsList, setReviewsList] = useState<any[]>([
+    {
+      name: "Sarah Jenkins",
+      role: "CEO, TechNova Solutions",
+      text: "Syntechcraft completely transformed our digital presence. Their attention to detail and innovative solutions are unmatched.",
+      rating: 5,
+    },
+    {
+      name: "David M.",
+      role: "Marketing Director, Bloom",
+      text: "Working with them was a breeze. They delivered the project before the deadline and exceeded all our expectations.",
+      rating: 5,
+    },
+    {
+      name: "Elena R.",
+      role: "Founder, StartupX",
+      text: "The technical expertise of the Syntechcraft team is top-notch. They built a highly scalable architecture for our platform.",
+      rating: 5,
+    },
+    {
+      name: "Michael Chang",
+      role: "CTO, InnovateTech",
+      text: "Their cloud deployment strategies saved us 40% on infrastructure costs. Truly professional team.",
+      rating: 5,
+    },
+    {
+      name: "Sophia L.",
+      role: "Operations Manager, Nexus",
+      text: "A fantastic experience from start to finish. Syntechcraft's communication and technical skills are exceptional.",
+      rating: 5,
+    }
+  ])
   const [activePoint, setActivePoint] = useState(0)
   const { theme } = useTheme()
 
@@ -256,6 +288,23 @@ export default function Home() {
     }
 
     fetchProjects()
+  }, [])
+
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch('/api/reviews')
+        if (response.ok) {
+          const data = await response.json()
+          if (data.reviews && data.reviews.length > 0) {
+            setReviewsList(data.reviews)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch reviews:', error)
+      }
+    }
+    fetchReviews()
   }, [])
 
   const { scrollYProgress } = useScroll()
@@ -588,7 +637,7 @@ export default function Home() {
       </section>
 
       {/* Solutions / Portfolio Section */}
-      <section id="portfolio" className="py-16 md:py-28 px-6 md:px-8 bg-[#FAF9F6] dark:bg-black overflow-hidden relative">
+      <section id="portfolio" className="pt-16 pb-8 md:pt-28 md:pb-12 px-6 md:px-8 bg-[#FAF9F6] dark:bg-black overflow-hidden relative">
         {/* Subtle decorative background element */}
         <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(#ffb400_0.7px,transparent_0.7px)] [background-size:32px_32px] opacity-[0.08] dark:opacity-[0.04]"></div>
 
@@ -715,6 +764,72 @@ export default function Home() {
                   />
                 </motion.a>
               </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section id="reviews" className="pt-8 pb-16 md:pt-12 md:pb-28 px-6 md:px-8 bg-[#FAF9F6] dark:bg-black overflow-hidden relative">
+        <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02] pointer-events-none bg-[radial-gradient(rgba(0,0,0,0.4)_1px,transparent_1px)] dark:bg-[radial-gradient(rgba(255,255,255,0.4)_1px,transparent_1px)] [background-size:20px_20px]"></div>
+
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="flex flex-col items-center justify-center mb-12 md:mb-20 gap-4 md:gap-6 text-center">
+            <div className="flex items-center gap-4 justify-center w-full">
+              <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
+              <span className="text-[#ffb400] font-black uppercase tracking-[0.4em] text-[9px] md:text-[10px]">Client Feedback</span>
+              <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
+            </div>
+            <div className="group flex flex-col items-center mt-4 w-full">
+              <h2 className="text-5xl md:text-6xl lg:text-7xl font-black italic text-slate-900 dark:text-white leading-[0.9] md:leading-[0.85] tracking-tight uppercase transition-colors duration-300 group-hover:text-[#ffb400]">
+                CLIENT <span className="text-[#ffb400] transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">REVIEWS.</span>
+              </h2>
+            </div>
+          </div>
+
+          <div className="relative flex overflow-hidden w-full group py-4 md:py-8 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+            <div className="flex w-max animate-marquee gap-6 md:gap-8 pr-6 md:pr-8">
+              {[...reviewsList, ...reviewsList].map((review, idx) => (
+                <div
+                  key={idx}
+                  className="w-[300px] md:w-[400px] flex-shrink-0 group bg-white/85 dark:bg-zinc-900/85 backdrop-blur-sm p-5 md:p-6 rounded-[20px] md:rounded-[24px] border border-slate-200/70 dark:border-zinc-800/80 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] hover:shadow-[#ffb400]/10 hover:border-[#ffb400]/50 transition-all duration-500 flex flex-col gap-4 md:gap-5 relative overflow-hidden"
+                >
+                  {/* Decorative quote mark */}
+                  <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 group-hover:text-[#ffb400] transition-all duration-500 group-hover:scale-110">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M14.017 21L16.41 14.59C16.634 13.985 16.745 13.332 16.745 12.673V8C16.745 7.44772 16.2973 7 15.745 7H11.745C11.1927 7 10.745 7.44772 10.745 8V12C10.745 12.5523 11.1927 13 11.745 13H13.717L12.017 17.653C11.8263 18.1754 12.0945 18.7541 12.6169 18.9448L13.5501 19.2858C13.882 19.407 14.2494 19.3402 14.5126 19.1105C14.7759 18.8808 14.8967 18.52 14.8291 18.167L14.017 21ZM7.01703 21L9.41003 14.59C9.63403 13.985 9.74503 13.332 9.74503 12.673V8C9.74503 7.44772 9.2973 7 8.74503 7H4.74503C4.19275 7 3.74503 7.44772 3.74503 8V12C3.74503 12.5523 4.19275 13 4.74503 13H6.71703L5.01703 17.653C4.82631 18.1754 5.09453 18.7541 5.6169 18.9448L6.55006 19.2858C6.88203 19.407 7.24939 19.3402 7.51264 19.1105C7.77589 18.8808 7.89673 18.52 7.82911 18.167L7.01703 21Z" />
+                    </svg>
+                  </div>
+
+                  <div className="flex items-center gap-1">
+                    {[...Array(review.rating || 5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 fill-[#ffb400] text-[#ffb400]" />
+                    ))}
+                  </div>
+                  
+                  <p className="text-slate-600 dark:text-zinc-400 font-medium leading-relaxed italic text-[13px] md:text-sm relative z-10 flex-grow">
+                    "{review.text}"
+                  </p>
+                  
+                  <div className="flex items-center gap-3 mt-auto">
+                    {review.profilePhoto ? (
+                      <img src={review.profilePhoto} alt={review.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-inner object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 dark:bg-zinc-800 flex items-center justify-center font-black text-slate-500 dark:text-zinc-500 text-base shadow-inner">
+                        {review.name.charAt(0)}
+                      </div>
+                    )}
+                    <div className="flex flex-col">
+                      <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-[11px] md:text-xs group-hover:text-[#ffb400] transition-colors line-clamp-1">
+                        {review.name}
+                      </h4>
+                      <span className="text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest line-clamp-1">
+                        {review.role}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
