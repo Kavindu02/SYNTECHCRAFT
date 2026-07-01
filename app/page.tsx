@@ -658,8 +658,6 @@ export default function Home() {
               <Button asChild variant="ghost" className="p-0 h-auto rounded-2xl hover:bg-transparent hover:text-inherit">
                 <motion.a
                   href="/projects"
-                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 180, 0, 0.2)" }}
-                  whileTap={{ scale: 0.95 }}
                   className="min-w-[180px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-8 py-5 rounded-2xl font-black uppercase tracking-[0.3em] text-[12px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 hidden md:flex relative overflow-hidden"
                 >
                   <span className="flex items-center gap-4 relative z-10">View All Projects</span>
@@ -746,8 +744,6 @@ export default function Home() {
               <Button asChild variant="ghost" className="p-0 h-auto rounded-xl hover:bg-transparent hover:text-inherit">
                 <motion.a
                   href="/projects"
-                  whileHover={{ scale: 1.05, boxShadow: "0 20px 40px rgba(255, 180, 0, 0.2)" }}
-                  whileTap={{ scale: 0.95 }}
                   className="min-w-[140px] flex items-center justify-between bg-black text-white dark:bg-white dark:text-black px-5 py-3 rounded-xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 relative overflow-hidden"
                 >
                   <span className="flex items-center gap-3 relative z-10">View All Projects</span>
