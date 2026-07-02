@@ -136,7 +136,7 @@ export default function ProjectsPage() {
   return (
     <main className="min-h-screen bg-[#FAF9F6] dark:bg-black text-slate-900 dark:text-white">
       {/* Navbar removed as requested */}
-      <section className="max-w-7xl mx-auto pt-4 px-2 sm:px-4 md:px-8">
+      <section className="max-w-7xl mx-auto pt-4 pb-24 md:pb-32 px-2 sm:px-4 md:px-8">
         <div className="flex flex-col items-center justify-center mb-10 gap-2 sm:gap-4 md:gap-8 w-full">
             {/* House icon button removed as requested */}
           <div className="flex flex-col items-center text-center w-full">
