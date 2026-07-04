@@ -469,11 +469,11 @@ export default function Home() {
               <div key={idx} className="flex flex-col gap-2 md:gap-3 group">
                 <div className="flex items-center gap-4">
                   <motion.div
-                    animate={activePoint === idx ? { 
+                    animate={activePoint === idx ? {
                       scale: [1, 1.15, 1.1],
                       backgroundColor: '#ffb400',
                       boxShadow: '0 0 20px rgba(255, 180, 0, 0.3)'
-                    } : { 
+                    } : {
                       scale: 1,
                       backgroundColor: theme === 'dark' ? 'rgb(24, 24, 27)' : 'rgb(248, 250, 252)', // zinc-900 : slate-50
                       boxShadow: '0 0 0px rgba(255, 180, 0, 0)'
@@ -481,9 +481,9 @@ export default function Home() {
                     transition={{ duration: 0.6, ease: "easeOut" }}
                     className="w-8 h-8 md:w-10 md:h-10 rounded-lg md:rounded-xl flex items-center justify-center group-hover:bg-[#ffb400] transition-colors"
                   >
-                    <CheckCircle2 
-                      size={18} 
-                      className={`transition-colors duration-500 ${activePoint === idx ? 'text-black' : 'text-[#ffb400]'} group-hover:text-black`} 
+                    <CheckCircle2
+                      size={18}
+                      className={`transition-colors duration-500 ${activePoint === idx ? 'text-black' : 'text-[#ffb400]'} group-hover:text-black`}
                     />
                   </motion.div>
                   <h4 className="font-black text-[11px] md:text-[12px] uppercase tracking-widest text-slate-900 dark:text-white">{item.t}</h4>
@@ -664,9 +664,9 @@ export default function Home() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 transition-transform duration-300 relative z-10">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                  
+
                   {/* Animated Background Shimmer */}
-                  <motion.div 
+                  <motion.div
                     initial={{ x: '-100%' }}
                     whileHover={{ x: '100%' }}
                     transition={{ duration: 0.6 }}
@@ -750,9 +750,9 @@ export default function Home() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" className="group-hover/btn:translate-x-2 transition-transform duration-300 relative z-10">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
                   </svg>
-                  
+
                   {/* Animated Background Shimmer */}
-                  <motion.div 
+                  <motion.div
                     initial={{ x: '-100%' }}
                     whileHover={{ x: '100%' }}
                     transition={{ duration: 0.6 }}
@@ -777,52 +777,66 @@ export default function Home() {
               <div className="w-12 md:w-16 h-[3px] bg-[#ffb400]"></div>
             </div>
             <div className="group flex flex-col items-center mt-4 w-full">
-              <h2 className="text-5xl md:text-6xl lg:text-7xl font-black italic text-slate-900 dark:text-white leading-[0.9] md:leading-[0.85] tracking-tight uppercase transition-colors duration-300 group-hover:text-[#ffb400]">
+              <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black italic text-slate-900 dark:text-white leading-[0.9] md:leading-[0.85] tracking-tight uppercase transition-colors duration-300 group-hover:text-[#ffb400]">
                 CLIENT <span className="text-[#ffb400] transition-colors duration-300 group-hover:text-black dark:group-hover:text-white">REVIEWS.</span>
               </h2>
             </div>
           </div>
 
           <div className="relative flex overflow-hidden w-full group py-4 md:py-8 [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
-            <div className="flex w-max animate-marquee gap-6 md:gap-8 pr-6 md:pr-8">
+            <div className="flex w-max animate-marquee gap-16 md:gap-24 px-8 md:px-12">
               {[...reviewsList, ...reviewsList].map((review, idx) => (
                 <div
                   key={idx}
-                  className="w-[300px] md:w-[400px] flex-shrink-0 group bg-white/85 dark:bg-zinc-900/85 backdrop-blur-sm p-5 md:p-6 rounded-[20px] md:rounded-[24px] border border-slate-200/70 dark:border-zinc-800/80 shadow-[0_18px_40px_-22px_rgba(15,23,42,0.35)] hover:shadow-[#ffb400]/10 hover:border-[#ffb400]/50 transition-all duration-500 flex flex-col gap-4 md:gap-5 relative overflow-hidden"
+                  className="w-[340px] sm:w-[380px] md:w-[450px] flex-shrink-0 group bg-white dark:bg-zinc-900 px-6 py-5 md:px-8 md:py-6 rounded-none rounded-tr-[5rem] shadow-xl relative overflow-visible flex flex-col my-10 md:my-12 border border-transparent dark:border-zinc-800"
                 >
-                  {/* Decorative quote mark */}
-                  <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 group-hover:text-[#ffb400] transition-all duration-500 group-hover:scale-110">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M14.017 21L16.41 14.59C16.634 13.985 16.745 13.332 16.745 12.673V8C16.745 7.44772 16.2973 7 15.745 7H11.745C11.1927 7 10.745 7.44772 10.745 8V12C10.745 12.5523 11.1927 13 11.745 13H13.717L12.017 17.653C11.8263 18.1754 12.0945 18.7541 12.6169 18.9448L13.5501 19.2858C13.882 19.407 14.2494 19.3402 14.5126 19.1105C14.7759 18.8808 14.8967 18.52 14.8291 18.167L14.017 21ZM7.01703 21L9.41003 14.59C9.63403 13.985 9.74503 13.332 9.74503 12.673V8C9.74503 7.44772 9.2973 7 8.74503 7H4.74503C4.19275 7 3.74503 7.44772 3.74503 8V12C3.74503 12.5523 4.19275 13 4.74503 13H6.71703L5.01703 17.653C4.82631 18.1754 5.09453 18.7541 5.6169 18.9448L6.55006 19.2858C6.88203 19.407 7.24939 19.3402 7.51264 19.1105C7.77589 18.8808 7.89673 18.52 7.82911 18.167L7.01703 21Z" />
+                  {/* Top Left Quote */}
+                  <div className="absolute -top-6 -left-6 md:-top-8 md:-left-8 text-[#ffb400] z-20 pointer-events-none">
+                    <svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 md:w-20 md:h-20">
+                      <path d="M 0 0 H 45 V 55 C 45 85 25 100 0 100 V 70 C 15 70 20 65 20 55 H 0 V 0 Z M 55 0 H 100 V 55 C 100 85 80 100 55 100 V 70 C 70 70 75 65 75 55 H 55 V 0 Z" />
                     </svg>
                   </div>
 
-                  <div className="flex items-center gap-1">
-                    {[...Array(review.rating || 5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-[#ffb400] text-[#ffb400]" />
-                    ))}
-                  </div>
-                  
-                  <p className="text-slate-600 dark:text-zinc-400 font-medium leading-relaxed italic text-[13px] md:text-sm relative z-10 flex-grow">
-                    "{review.text}"
-                  </p>
-                  
-                  <div className="flex items-center gap-3 mt-auto">
+                  {/* Avatar */}
+                  <div className="absolute -top-6 right-0 md:-top-8 md:right-2 border-[6px] md:border-[8px] border-[#FAF9F6] dark:border-black rounded-full z-20 bg-white dark:bg-zinc-900">
                     {review.profilePhoto ? (
-                      <img src={review.profilePhoto} alt={review.name} className="w-8 h-8 md:w-10 md:h-10 rounded-full shadow-inner object-cover" />
+                      <img src={review.profilePhoto} alt={review.name} referrerPolicy="no-referrer" className="w-16 h-16 md:w-20 md:h-20 rounded-full object-cover" />
                     ) : (
-                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-slate-200 dark:bg-zinc-800 flex items-center justify-center font-black text-slate-500 dark:text-zinc-500 text-base shadow-inner">
+                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-slate-200 dark:bg-zinc-800 flex items-center justify-center font-black text-slate-500 dark:text-zinc-500 text-2xl">
                         {review.name.charAt(0)}
                       </div>
                     )}
-                    <div className="flex flex-col">
-                      <h4 className="font-black text-slate-900 dark:text-white uppercase tracking-wider text-[11px] md:text-xs group-hover:text-[#ffb400] transition-colors line-clamp-1">
-                        {review.name}
-                      </h4>
-                      <span className="text-[9px] md:text-[10px] font-bold text-slate-400 dark:text-zinc-500 uppercase tracking-widest line-clamp-1">
-                        {review.role}
-                      </span>
+                  </div>
+
+                  <div className="flex flex-col pt-4 md:pt-6 z-10 pr-10 md:pr-14">
+                    <h4 className="font-bold text-[1.1rem] sm:text-lg md:text-xl text-slate-900 dark:text-white break-words leading-tight">
+                      {review.name}
+                    </h4>
+                    <span className="text-sm md:text-base text-slate-600 dark:text-zinc-400 break-words mt-1">
+                      {review.role || "Verified Client"}
+                    </span>
+                    <div className="flex items-center gap-1 mt-3">
+                      {[...Array(5)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className={i < (review.rating || 5) ? "fill-[#ffb400] text-[#ffb400]" : "text-slate-200 dark:text-zinc-700"}
+                        />
+                      ))}
                     </div>
+                  </div>
+
+                  <p className="text-slate-700 dark:text-zinc-300 font-normal leading-relaxed text-sm md:text-base z-10 mt-4 md:mt-6 flex-grow">
+                    {review.text}
+                  </p>
+
+
+
+                  {/* Bottom Right Quote */}
+                  <div className="absolute -bottom-6 -right-6 md:-bottom-8 md:-right-8 text-[#ffb400] z-20 rotate-180 pointer-events-none">
+                    <svg viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg" className="w-16 h-16 md:w-20 md:h-20">
+                      <path d="M 0 0 H 45 V 55 C 45 85 25 100 0 100 V 70 C 15 70 20 65 20 55 H 0 V 0 Z M 55 0 H 100 V 55 C 100 85 80 100 55 100 V 70 C 70 70 75 65 75 55 H 55 V 0 Z" />
+                    </svg>
                   </div>
                 </div>
               ))}
