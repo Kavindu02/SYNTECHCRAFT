@@ -38,8 +38,8 @@ const buttonVariants = cva(
 
 interface ButtonProps
   extends
-    React.ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {
+  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  VariantProps<typeof buttonVariants> {
   asChild?: boolean
 }
 
@@ -81,7 +81,7 @@ const Button = React.forwardRef<any, ButtonProps>(
           ref,
           className: cn(
             buttonVariants({ variant, size, className }),
-            variant !== 'link' && 'relative overflow-hidden',
+            variant !== 'link' && 'relative overflow-hidden btn-shine',
             child.props.className
           ),
           onClick: (event: any) => {
@@ -125,7 +125,7 @@ const Button = React.forwardRef<any, ButtonProps>(
         suppressHydrationWarning
         className={cn(
           buttonVariants({ variant, size, className }),
-          variant !== 'link' && 'relative overflow-hidden'
+          variant !== 'link' && 'relative overflow-hidden btn-shine'
         )}
         ref={ref}
         onClick={(event: any) => {

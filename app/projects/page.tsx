@@ -290,7 +290,7 @@ export default function ProjectsPage() {
                   ))}
                 </div>
                 <div className="pt-2 sm:pt-3 md:pt-4 mt-auto">
-                  <div className="w-full flex items-center justify-between bg-black text-white dark:bg-white dark:text-black p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20">
+                  <div className="w-full flex items-center justify-between bg-black text-white dark:bg-white dark:text-black p-3 sm:p-4 md:p-5 rounded-lg sm:rounded-xl md:rounded-2xl font-black uppercase tracking-[0.2em] text-[9px] sm:text-[10px] hover:bg-[#ffb400] hover:text-black dark:hover:bg-[#ffb400] dark:hover:text-black transition-all group/btn shadow-lg shadow-black/10 hover:shadow-[#ffb400]/20 relative overflow-hidden btn-shine">
                     <span className="flex items-center gap-2 sm:gap-3">
                       Launch Experience
                     </span>
@@ -305,7 +305,7 @@ export default function ProjectsPage() {
         <div className="w-full flex justify-center mt-2 hidden">
           <a
             href="/"
-            className="min-w-[120px] max-w-[180px] flex items-center justify-center gap-2 bg-black text-white px-4 py-2 rounded-xl font-black uppercase tracking-[0.15em] text-[11px] sm:text-[12px] hover:bg-[#ffb400] hover:text-black transition-all shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20"
+            className="min-w-[120px] max-w-[180px] flex items-center justify-center gap-2 bg-black text-white px-4 py-2 rounded-xl font-black uppercase tracking-[0.15em] text-[11px] sm:text-[12px] hover:bg-[#ffb400] hover:text-black transition-all shadow-xl shadow-black/10 hover:shadow-[#ffb400]/20 relative overflow-hidden btn-shine"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l9-9 9 9M4 10v10a1 1 0 001 1h5m4 0h5a1 1 0 001-1V10" />
